@@ -1,7 +1,6 @@
 package com.java.sqlconverter;
 
 import com.java.sqlconverter.constant.ConvertType;
-import com.java.sqlconverter.converter.impl.InsertConverterImpl;
 import com.java.sqlconverter.factory.InsertAndUpdateConverterFactory;
 import com.java.sqlconverter.model.SQLCommentCheckerReport;
 import com.java.sqlconverter.model.SQLDetails;
@@ -54,7 +53,7 @@ public class Main {
         String newSqlFileText = InsertAndUpdateConverterFactory
                 .createConverter(sqlDetails, ConvertType.INSERT)
                 .convert2Upsert();
-        System.out.println(newSqlFileText.replace(InsertConverterImpl.DUMMY_SEMICOLON, ""));
+        System.out.println(SQLUtil.recoverInsertSql(newSqlFileText));
         System.out.println("耗費時間:" + (System.currentTimeMillis() - l) + "ms");
     }
 }

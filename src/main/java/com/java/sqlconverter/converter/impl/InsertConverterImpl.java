@@ -136,8 +136,7 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
             String[] keys = replaceCommaInSingleQuotation(m.group(5)).split(",");
             keys = StringUtil.wordsReplace(DUMMY_COMMA, ",", keys);
 
-            String[] vals = replaceCommaInSingleQuotation(m.group(7)).split(",");
-            vals = StringUtil.wordsReplace(DUMMY_COMMA, ",", vals);
+            String[] vals = m.group(7).split(",");
 
             InsertModel insertModel = new InsertModel(insertSql, tableName, trimStringArray(keys), trimStringArray(vals));
             result.add(insertModel);
