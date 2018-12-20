@@ -47,12 +47,6 @@ public class SQLSyntaxCheck {
         try {
             Process process = pb.start();
             String[] console = processConsole(process);
-            if (!"".equals(console[0])) {
-                System.err.println("CMD :\n" + console[0]);
-            }
-            if (!"".equals(console[1])) {
-                System.err.println("CMD ERROR:\n" + console[1]);
-            }
             int exitCode = process.waitFor();
             //如果sqlcmd呼叫正確exitCode=0,如果sql語法都正確回傳""
             return new SyntaxCheckReport(

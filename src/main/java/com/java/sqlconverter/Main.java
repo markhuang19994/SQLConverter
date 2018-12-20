@@ -12,7 +12,6 @@ import com.java.sqlconverter.util.StringUtil;
 import com.java.sqlconverter.validate.*;
 import com.java.sqlconverter.validate.builder.SQLSyntaxCheckBuilder;
 
-import java.io.File;
 import java.util.*;
 
 /**
@@ -24,8 +23,8 @@ import java.util.*;
  */
 public class Main {
 
-    private static final String TEXT_1 = FileUtil.readFile("C:\\Users\\1710002NB01\\Documents\\GIT\\SQLConverter\\src\\main\\resources\\sql.txt");
-    private static final String ERROR_FILE_PATH = "";
+    private static String sqlFilePath;
+    private static String errorFilePath;
 
 
     /**
@@ -37,11 +36,13 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
+            parseArgs(args);
+            String sqlText = FileUtil.readFile(sqlFilePath);
             long l = System.currentTimeMillis();
             //1.check sql檔案格式是否正確
             SyntaxCheckReport syntaxCheckReport = SQLSyntaxCheckBuilder
                     .build()
-                    .setSqlFileText(TEXT_1)
+                    .setSqlFileText(sqlText)
                     .setHost("localhost")
                     .setPort("1433")
                     .setUserName("sa")
@@ -54,9 +55,9 @@ public class Main {
 
             //2.check 自定義註釋是否正確 如:--{} init等等
             SQLDetails sqlDetails = new SQLDetails(
-                    SQLUtil.complementDummyInsertSemicolonAndReplaceSensitiveWordsInInsertValues(TEXT_1)
+                    SQLUtil.complementDummyInsertSemicolonAndReplaceSensitiveWordsInInsertValues(sqlText)
             );
-            SQLCommentCheck commentChecker = validateSql();
+            SQLCommentCheck commentChecker = validateSql(sqlText);
             List<CommentCheckReport> commentCheckReports = commentChecker.generateCommentAndLine().processCommentRule();
 
             if (!commentChecker.isAllPass()) {
@@ -71,13 +72,15 @@ public class Main {
             System.out.println(SQLUtil.recoverInsertSql(newSqlFileText));
             System.out.println("耗費時間:" + (System.currentTimeMillis() - l) + "ms");
         } catch (Exception e) {
-            FileUtil.writeFile(ERROR_FILE_PATH, e.getMessage());
+            if (errorFilePath != null){
+                FileUtil.writeFile(errorFilePath, e.getMessage());
+            }
             e.printStackTrace();
         }
     }
 
-    private static SQLCommentCheck validateSql() {
-        SQLCommentCheck check = new SQLCommentCheck(TEXT_1);
+    private static SQLCommentCheck validateSql(String sqlText) {
+        SQLCommentCheck check = new SQLCommentCheck(sqlText);
 
         check.register(new CommentRule() {
             private final List<String> regexs = Arrays.asList(
@@ -218,8 +221,38 @@ public class Main {
         return sb.toString();
     }
 
-    private void writeErrorFile(String path, String content) {
+    private static void parseArgs(String[] args) {
+        int i = 0;
 
+        while (i < args.length) {
+            if (args[i].compareTo("--sql.file.path") == 0 || args[i].compareTo("-sfp") == 0) {
+                if ((i + 1) >= args.length) {
+                    usage();
+                }
+                sqlFilePath = args[i + 1];
+                i += 2;
+            } else if (args[i].compareTo("--error.file.path") == 0 || args[i].compareTo("-efp") == 0) {
+                if ((i + 1) >= args.length) {
+                    usage();
+                }
+                errorFilePath = args[i + 1];
+                i += 2;
+            } else {
+                System.err.println("Unrecognized parameter: " + args[i]);
+                usage();
+                break;
+            }
+        }
+    }
+
+    private static void usage()
+    {
+        System.err.println("\nUsage: sql converter [options]");
+        System.err.println();
+        System.err.println("\twhere options are:");
+        System.err.println("\t-sfp \n\t\t--sql.file.path [your sql file path] : The sql file to be convert");
+        System.err.println("\t-efp \n\t\t--error.file.path [your error file path] : The error file, when convert fail generate");
+        System.err.println();
     }
 
 }
