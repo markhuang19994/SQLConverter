@@ -1,0 +1,30 @@
+package com.java.sqlconverter.util;
+
+/**
+ * @author MarkHuang
+ * @version <ul>
+ * <li>2018/12/18, MarkHuang,new
+ * </ul>
+ * @since 2018/12/18
+ */
+public class StringUtil {
+    public static String[] wordsReplace(String origin, String result, String... words) {
+        String[] newWords = new String[words.length];
+        for (int i = 0; i < words.length; i++) {
+            newWords[i] = words[i].replace(origin, result);
+        }
+        return newWords;
+    }
+
+    public static String abbreviateString(String str, int maxLen) {
+        return str.length() >= maxLen ? str.substring(0, maxLen) + "..." : str;
+    }
+
+    public static String[] abbreviateString(String[] strs, int maxLen) {
+        String[] newStrs = new String[strs.length];
+        for (int i = 0; i < strs.length; i++) {
+            newStrs[i] = strs[i].length() >= maxLen ? strs[i].substring(0, maxLen) + "..." : strs[i];
+        }
+        return newStrs;
+    }
+}
