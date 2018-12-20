@@ -1,6 +1,7 @@
 package com.java.sqlconverter.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,7 +15,7 @@ import java.util.regex.Pattern;
  */
 public class SQLDetails {
     private List<String> upsertTextBlocks = new ArrayList<>();
-    private String primaryKey;
+    private List<String> primaryKeys;
     private String sqlFileText;
 
     public SQLDetails(String sqlFileText) {
@@ -27,7 +28,7 @@ public class SQLDetails {
         Pattern p = Pattern.compile("--@\\s*pk\\s*:\\s*(.*?)\\s");
         Matcher m = p.matcher(sqlFileText);
         if (m.find()) {
-            this.primaryKey = m.group(1);
+            this.primaryKeys = Arrays.asList(m.group(1).split(","));
         }
     }
 
@@ -58,12 +59,12 @@ public class SQLDetails {
         this.upsertTextBlocks = upsertTextBlocks;
     }
 
-    public String getPrimaryKey() {
-        return primaryKey;
+    public List<String> getPrimaryKeys() {
+        return new ArrayList<>(this.primaryKeys);
     }
 
-    public void setPrimaryKey(String primaryKey) {
-        this.primaryKey = primaryKey;
+    public void setPrimaryKeys(List<String> primaryKeys) {
+        this.primaryKeys = primaryKeys;
     }
 
     public String getSqlFileText() {

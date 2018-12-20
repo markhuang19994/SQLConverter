@@ -1,7 +1,6 @@
 package com.java.sqlconverter.converter.impl;
 
 import com.java.sqlconverter.model.SQLDetails;
-import com.java.sqlconverter.util.SQLUtil;
 import com.java.sqlconverter.util.StringUtil;
 
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ import java.util.regex.Pattern;
  */
 public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.InsertAndUpdateConverterImpl {
 
-    private static final String UPDATE_SQL_TEMPLATE = "UPDATE {tableName} SET {colKeyVal} WHERE {primaryKeyVal}";
+    private static final String UPDATE_SQL_TEMPLATE = "UPDATE {tableName} SET {colKeyVal} {limitedCondition}";
     private static final String UPSERT_TEMPLATE = "{updateSql}\nIF @@ROWCOUNT=0\n\t{insert}";
     private static final String DUMMY_COMMA = "$OAOOUOA_A$";
     public static final String DUMMY_SEMICOLON = "#dummySemicolon#";
@@ -67,7 +66,7 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
     }
 
     private String insert2Update(InsertModel sql) {
-        String temp = "";
+        String temp;
         String insertSql = sql.sqlStr;
         String tableName = sql.tableName;
         String[] keys = sql.keys;
@@ -76,7 +75,7 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
         temp = UPDATE_SQL_TEMPLATE;
         temp = temp.replace("{tableName}", tableName);
         temp = temp.replace("{colKeyVal}", generateColumnKeyVal(keys, vals));
-        temp = temp.replace("{primaryKeyVal}", checkAndGeneratePrimaryKeyVal(insertSql, keys, vals));
+        temp = temp.replace("{limitedCondition}", checkAndGeneratePrimaryKeyVal(insertSql, keys, vals));
         return temp;
     }
 
@@ -90,14 +89,24 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
     }
 
     private String checkAndGeneratePrimaryKeyVal(String insertSql, String[] keys, String[] vals) {
+        StringBuilder sb = new StringBuilder();
+        String limitKey = "WHERE";
+        List<String> pks = this.sqlDetails.getPrimaryKeys();
         for (int i = 0; i < keys.length; i++) {
-            if (keys[i].replaceAll("[\\[\\]]", "").equals(this.sqlDetails.getPrimaryKey())) {
-                return String.format("%s = %s", this.sqlDetails.getPrimaryKey(), vals[i]);
+            if (pks.contains(keys[i].replaceAll("[\\[\\]]", ""))) {
+                sb.append(String.format("%s %s = %s ", limitKey, keys[i], vals[i]));
+                if (limitKey.equals("WHERE")) {
+                    limitKey = "AND";
+                }
+                pks.remove(keys[i]);
             }
+        }
+        if (pks.size() == 0) {
+            return sb.toString();
         }
         throw new IllegalArgumentException(
                 String.format("Insert sqlDetails:%s , 未包含主鍵:%s",
-                        StringUtil.abbreviateString(insertSql, 100), this.sqlDetails.getPrimaryKey())
+                        StringUtil.abbreviateString(insertSql, 100), pks)
         );
     }
 
