@@ -1,5 +1,7 @@
 package com.java.sqlconverter.util;
 
+import java.util.List;
+
 /**
  * @author MarkHuang
  * @version <ul>
@@ -7,7 +9,11 @@ package com.java.sqlconverter.util;
  * </ul>
  * @since 2018/12/18
  */
-public class StringUtil {
+public final class StringUtil {
+
+    private StringUtil() {
+    }
+
     public static String[] wordsReplace(String origin, String result, String... words) {
         String[] newWords = new String[words.length];
         for (int i = 0; i < words.length; i++) {
@@ -26,5 +32,14 @@ public class StringUtil {
             newStrs[i] = strs[i].length() >= maxLen ? strs[i].substring(0, maxLen) + "..." : strs[i];
         }
         return newStrs;
+    }
+
+    public static boolean checkStringWithRegex(String str, List<String> regexs) {
+        for (String regex : regexs) {
+            if (str.matches(regex)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

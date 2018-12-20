@@ -1,6 +1,9 @@
 package com.java.sqlconverter.validate;
 
+import com.java.sqlconverter.util.SyntaxCheckReport;
+
 import java.io.*;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -30,7 +33,7 @@ public class SQLSyntaxCheck {
         this.sqlFileText = sqlFileText;
     }
 
-    public boolean check() {
+    public SyntaxCheckReport check() {
         File tempFile = createTempFile(
                 String.valueOf(System.currentTimeMillis()), ".sql",
                 "SET NOEXEC ON;\n" + this.sqlFileText + "\nSET NOEXEC OFF;\nGO"
@@ -51,7 +54,11 @@ public class SQLSyntaxCheck {
                 System.err.println("CMD ERROR:\n" + console[1]);
             }
             int exitCode = process.waitFor();
-            return exitCode == 0;
+            //如果sqlcmd呼叫正確exitCode=0,如果sql語法都正確回傳""
+            return new SyntaxCheckReport(
+                    exitCode == 0 && "".equals(console[0]) && console[0].equals(console[1])
+                    , Arrays.asList(console[0], console[1])
+            );
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             throw new RuntimeException("Process sqlcmd error" + e.getMessage());
