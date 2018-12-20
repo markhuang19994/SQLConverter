@@ -3,14 +3,16 @@ package com.java.sqlconverter;
 import com.java.sqlconverter.constant.ConvertType;
 import com.java.sqlconverter.factory.InsertAndUpdateConverterFactory;
 import com.java.sqlconverter.model.SQLDetails;
-import com.java.sqlconverter.util.CommentCheckReport;
-import com.java.sqlconverter.util.SyntaxCheckReport;
+import com.java.sqlconverter.model.CommentCheckReport;
+import com.java.sqlconverter.model.SyntaxCheckReport;
+import com.java.sqlconverter.util.FileUtil;
 import com.java.sqlconverter.validate.CommentRule;
 import com.java.sqlconverter.util.SQLUtil;
 import com.java.sqlconverter.util.StringUtil;
 import com.java.sqlconverter.validate.*;
 import com.java.sqlconverter.validate.builder.SQLSyntaxCheckBuilder;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -21,8 +23,15 @@ import java.util.*;
  * @since 2018/12/17
  */
 public class Main {
+
+    private static final String TEXT_1 = FileUtil.readFile("C:\\Users\\1710002NB01\\Documents\\GIT\\SQLConverter\\src\\main\\resources\\sql.txt");
+    private static final String ERROR_FILE_PATH = "";
+
+
     /**
-     * main 方法中有3個步驟,任意步驟出錯都會立即停止
+     * main方法中有3個步驟,任意步驟出錯都會立即停止程序繼續執行,
+     * 但呼叫本程式的程序拿到的回傳值永遠為0(正確),即:本程序失敗並不影響其他流程,
+     * 如果本程序出錯停止,則會產出一份error file記錄錯誤資訊
      *
      * @param args args
      */
@@ -32,7 +41,7 @@ public class Main {
             //1.check sql檔案格式是否正確
             SyntaxCheckReport syntaxCheckReport = SQLSyntaxCheckBuilder
                     .build()
-                    .setSqlFileText(SampleSQLText.TEXT_1)
+                    .setSqlFileText(TEXT_1)
                     .setHost("localhost")
                     .setPort("1433")
                     .setUserName("sa")
@@ -40,12 +49,12 @@ public class Main {
                     .create()
                     .check();
             if (!syntaxCheckReport.isSyntaxCorrect()) {
-                throw new IllegalArgumentException("SQL syntax is not correct!");
+                throw new IllegalArgumentException("SQL syntax is not correct: \n" + syntaxCheckReport.getErrorMessages());
             }
 
             //2.check 自定義註釋是否正確 如:--{} init等等
             SQLDetails sqlDetails = new SQLDetails(
-                    SQLUtil.complementDummyInsertSemicolonAndReplaceSensitiveWordsInInsertValues(SampleSQLText.TEXT_1)
+                    SQLUtil.complementDummyInsertSemicolonAndReplaceSensitiveWordsInInsertValues(TEXT_1)
             );
             SQLCommentCheck commentChecker = validateSql();
             List<CommentCheckReport> commentCheckReports = commentChecker.generateCommentAndLine().processCommentRule();
@@ -62,12 +71,13 @@ public class Main {
             System.out.println(SQLUtil.recoverInsertSql(newSqlFileText));
             System.out.println("耗費時間:" + (System.currentTimeMillis() - l) + "ms");
         } catch (Exception e) {
+            FileUtil.writeFile(ERROR_FILE_PATH, e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public static SQLCommentCheck validateSql() {
-        SQLCommentCheck check = new SQLCommentCheck(SampleSQLText.TEXT_1);
+    private static SQLCommentCheck validateSql() {
+        SQLCommentCheck check = new SQLCommentCheck(TEXT_1);
 
         check.register(new CommentRule() {
             private final List<String> regexs = Arrays.asList(
@@ -206,6 +216,10 @@ public class Main {
             }
         }
         return sb.toString();
+    }
+
+    private void writeErrorFile(String path, String content) {
+
     }
 
 }

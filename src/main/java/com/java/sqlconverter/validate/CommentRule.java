@@ -1,7 +1,6 @@
 package com.java.sqlconverter.validate;
 
-import com.java.sqlconverter.util.CommentCheckReport;
-import com.java.sqlconverter.validate.CommentAndLine;
+import com.java.sqlconverter.model.CommentCheckReport;
 
 import java.util.List;
 

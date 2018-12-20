@@ -1,6 +1,6 @@
 package com.java.sqlconverter.validate;
 
-import com.java.sqlconverter.util.SyntaxCheckReport;
+import com.java.sqlconverter.model.SyntaxCheckReport;
 
 import java.io.*;
 import java.util.Arrays;

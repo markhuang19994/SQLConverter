@@ -1,4 +1,4 @@
-package com.java.sqlconverter.util;
+package com.java.sqlconverter.model;
 
 import java.util.List;
 
@@ -9,12 +9,12 @@ import java.util.List;
  * </ul>
  * @since 2018/12/20
  */
-public class SyntaxCheckReport {
-    private boolean isSyntaxCorrect;
+public class CommentCheckReport {
+    private boolean isPass;
     private List<String> errorMessages;
 
-    public SyntaxCheckReport(boolean isSyntaxCorrect, List<String> errorMessages) {
-        this.isSyntaxCorrect = isSyntaxCorrect;
+    public CommentCheckReport(boolean isPass, List<String> errorMessages) {
+        this.isPass = isPass;
         this.errorMessages = errorMessages;
     }
 
@@ -22,15 +22,15 @@ public class SyntaxCheckReport {
         return errorMessages;
     }
 
-    public boolean isSyntaxCorrect() {
-        return isSyntaxCorrect;
+    public boolean isPass() {
+        return isPass;
     }
 
     public void setErrorMessages(List<String> errorMessages) {
         this.errorMessages = errorMessages;
     }
 
-    public void setSyntaxCorrect(boolean syntaxCorrect) {
-        isSyntaxCorrect = syntaxCorrect;
+    public void setPass(boolean pass) {
+        isPass = pass;
     }
 }
