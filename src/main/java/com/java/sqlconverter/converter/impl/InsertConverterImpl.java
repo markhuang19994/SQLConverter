@@ -157,7 +157,6 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
         boolean isFindBeginQuotation = false;
         boolean isEscape = false;
         StringBuilder sb = new StringBuilder();
-        ;
         for (int index = 0; index < chars.length; index++) {
             char c = chars[index];
             if (isEscape) {
@@ -178,8 +177,6 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
 
             if (c == ',' && isFindBeginQuotation) {
                 sb.append(DUMMY_COMMA);
-            } else if (c == ';' && isFindBeginQuotation) {
-                sb.append("qq");
             } else {
                 sb.append(c);
             }
