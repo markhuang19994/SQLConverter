@@ -31,15 +31,12 @@ public class SQLCommentCheck {
     }
 
     public SQLCommentCheck generateCommentAndLine() {
-        String[] lines = this.sqlText.split("\n");
+        String[] lineTexts = this.sqlText.split("\n");
         for (CommentRule rule : commentRules) {
-            List<String> commentRegex = rule.getCommentRegex();
             int i = 1;
-            for (String line : lines) {
-                for (String regex : commentRegex) {
-                    if (line.matches(regex)) {
-                        addAndCreateMapList(rulesCommentAndLines, rule.toString(), new CommentAndLine(line, i));
-                    }
+            for (String lineText : lineTexts) {
+                if (rule.isLineNeedCheck(lineText)) {
+                    addAndCreateMapList(rulesCommentAndLines, rule.toString(), new CommentAndLine(lineText, i));
                 }
                 i++;
             }

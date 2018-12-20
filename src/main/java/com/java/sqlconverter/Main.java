@@ -98,8 +98,8 @@ public class Main {
             }
 
             @Override
-            public List<String> getCommentRegex() {
-                return Collections.singletonList("^(--\\{}.*)$");
+            public boolean isLineNeedCheck(String line) {
+                return line.matches("^(--\\{}.*)$");
             }
 
             private List<String> checkRational(List<CommentAndLine> commentAndLines) {
@@ -162,8 +162,8 @@ public class Main {
             }
 
             @Override
-            public List<String> getCommentRegex() {//todo 換成is this line need check
-                return Collections.singletonList("^(--\\@.*)$");
+            public boolean isLineNeedCheck(String line) {
+                return line.matches("^(--@.*)$");
             }
 
             private List<String> checkRational(List<CommentAndLine> commentAndLines) {

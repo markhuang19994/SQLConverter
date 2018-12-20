@@ -15,5 +15,5 @@ import java.util.List;
 public interface CommentRule {
     CommentCheckReport checkComment(List<CommentAndLine> commentAndLines);
 
-    List<String> getCommentRegex();
+    boolean isLineNeedCheck(String line);
 }
