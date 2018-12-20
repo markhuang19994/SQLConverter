@@ -72,13 +72,19 @@ public class Main {
             System.out.println(SQLUtil.recoverInsertSql(newSqlFileText));
             System.out.println("耗費時間:" + (System.currentTimeMillis() - l) + "ms");
         } catch (Exception e) {
-            if (errorFilePath != null){
+            if (errorFilePath != null) {
                 FileUtil.writeFile(errorFilePath, e.getMessage());
             }
             e.printStackTrace();
         }
     }
 
+    /**
+     * 初始化需要檢驗的註釋
+     *
+     * @param sqlText sqlText
+     * @return SQLCommentCheck
+     */
     private static SQLCommentCheck validateSql(String sqlText) {
         SQLCommentCheck check = new SQLCommentCheck(sqlText);
 
@@ -245,8 +251,7 @@ public class Main {
         }
     }
 
-    private static void usage()
-    {
+    private static void usage() {
         System.err.println("\nUsage: sql converter [options]");
         System.err.println();
         System.err.println("\twhere options are:");

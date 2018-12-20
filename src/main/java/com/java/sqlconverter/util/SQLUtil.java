@@ -26,6 +26,14 @@ public final class SQLUtil {
         INSERT_SENSITIVE_WORDS_CONVERT_MAP.put(");", "#$#02#$#");
     }
 
+    /**
+     * 1.將insert ... values(*)語句中*的內容的敏感文字替換','與');'
+     *
+     * 2.自動補齊每一句insert的分號
+     *
+     * @param sqlText sqlText
+     * @return String
+     */
     public static String complementDummyInsertSemicolonAndReplaceSensitiveWordsInInsertValues(String sqlText) {
         char[] chars = sqlText.toCharArray();
         Pattern p = Pattern.compile("((?i)insert)\\s+(((?i)into)\\s+)?(.*?)\\s+\\(([\\s\\S]*?)\\)\\s+((?i)values)");

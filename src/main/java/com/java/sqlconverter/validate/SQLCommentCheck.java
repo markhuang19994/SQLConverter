@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 只需要實作CommentRule並且註冊進此類,就能自動對sql文件驗證
+ *
  * @author MarkHuang
  * @version <ul>
  * <li>2018/12/20, MarkHuang,new
@@ -30,6 +32,12 @@ public class SQLCommentCheck {
         commentRules.add(rule);
     }
 
+    /**
+     * 產出commentRule需要驗證的comment與其行號,
+     * 如果isLineNeedCheck回傳true,代表此commentRule需要驗證這一行
+     *
+     * @return SQLCommentCheck
+     */
     public SQLCommentCheck generateCommentAndLine() {
         String[] lineTexts = this.sqlText.split("\n");
         for (CommentRule rule : commentRules) {
@@ -44,6 +52,11 @@ public class SQLCommentCheck {
         return this;
     }
 
+    /**
+     * 呼叫已經註冊的commentRule的check方法,並收集回傳的report
+     *
+     * @return List<CommentCheckReport>
+     */
     public List<CommentCheckReport> processCommentRule() {
         for (CommentRule commentRule : this.commentRules) {
             List<CommentAndLine> commentAndLines = rulesCommentAndLines.get(commentRule.toString());
