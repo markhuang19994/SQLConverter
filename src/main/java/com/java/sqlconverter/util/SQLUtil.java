@@ -1,6 +1,7 @@
 package com.java.sqlconverter.util;
 
 import com.java.sqlconverter.converter.impl.InsertConverterImpl;
+import com.java.sqlconverter.model.CommentCheckReport;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -107,5 +108,22 @@ public final class SQLUtil {
         }
         return sqlText
                 .replace(InsertConverterImpl.DUMMY_SEMICOLON, "");
+    }
+
+    public static String generateErrorMessageFromReports(List<CommentCheckReport> reports, boolean noMatterPass) {
+        StringBuilder sb = new StringBuilder("錯誤訊息:").append(System.lineSeparator());
+        for (CommentCheckReport commentCheckReport : reports) {
+            if (noMatterPass || !commentCheckReport.isPass()) {
+                List<String> errorMessages = commentCheckReport.getErrorMessages();
+                for (String errorMessage : errorMessages) {
+                    sb.append(errorMessage).append(System.lineSeparator());
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String removeUpsertComments(String sqlText){
+        return sqlText.replaceAll("--@\\s*upsert\\s*:.*?\\s*?\n", "");
     }
 }
