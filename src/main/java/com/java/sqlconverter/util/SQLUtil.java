@@ -45,9 +45,6 @@ public final class SQLUtil {
             boolean isInQuotation = false;
             boolean isEscape = false;
             int end = m.end();
-            if (++end >= chars.length) {
-                break;
-            }
             for (; end < chars.length; end++) {
                 char c = chars[end];
                 if (isEscape) {
