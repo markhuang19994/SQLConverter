@@ -1,7 +1,5 @@
 package com.java.sqlconverter.model;
 
-import java.util.List;
-
 /**
  * @author MarkHuang
  * @version <ul>
@@ -11,23 +9,29 @@ import java.util.List;
  */
 public class SyntaxCheckReport {
     private boolean isSyntaxCorrect;
-    private List<String> errorMessages;
+    private String errorMessage;
+    private String correctMessage;
 
-    public SyntaxCheckReport(boolean isSyntaxCorrect, List<String> errorMessages) {
+    public SyntaxCheckReport(boolean isSyntaxCorrect, String correctMessage, String errorMessage) {
         this.isSyntaxCorrect = isSyntaxCorrect;
-        this.errorMessages = errorMessages;
+        this.correctMessage = correctMessage;
+        this.errorMessage = errorMessage;
     }
 
-    public List<String> getErrorMessages() {
-        return errorMessages;
+    public String getCorrectMessage() {
+        return correctMessage;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 
     public boolean isSyntaxCorrect() {
         return isSyntaxCorrect;
     }
 
-    public void setErrorMessages(List<String> errorMessages) {
-        this.errorMessages = errorMessages;
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 
     public void setSyntaxCorrect(boolean syntaxCorrect) {

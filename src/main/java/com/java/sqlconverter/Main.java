@@ -51,7 +51,7 @@ public class Main {
                     .create()
                     .check();
             if (!syntaxCheckReport.isSyntaxCorrect()) {
-                throw new IllegalArgumentException("SQL syntax is not correct: \n" + syntaxCheckReport.getErrorMessages());
+                throw new IllegalArgumentException("SQL syntax is not correct: \n" + syntaxCheckReport.getErrorMessage());
             }
 
             //2.check 自定義註釋是否正確 如:--{} init等等

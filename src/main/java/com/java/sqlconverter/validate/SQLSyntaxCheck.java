@@ -36,7 +36,7 @@ public class SQLSyntaxCheck {
     public SyntaxCheckReport check() {
         File tempFile = createTempFile(
                 String.valueOf(System.currentTimeMillis()), ".sql",
-                "SET NOEXEC ON;\n" + this.sqlFileText + "\nSET NOEXEC OFF;\nGO"
+                "SET NOEXEC ON;\n" + this.sqlFileText + "\nSET NOEXEC OFF;"
         );
         ProcessBuilder pb = new ProcessBuilder(
                 "sqlcmd", "-S", String.format("%s,%s", host, port), "-U", userName, "-P", password
@@ -50,8 +50,8 @@ public class SQLSyntaxCheck {
             int exitCode = process.waitFor();
             //如果sqlcmd呼叫正確exitCode=0,如果sql語法都正確回傳""
             return new SyntaxCheckReport(
-                    exitCode == 0 && "".equals(console[0]) && console[0].equals(console[1])
-                    , Arrays.asList(console[0], console[1])
+                    exitCode == 0 && "".equals(console[1])
+                    , console[0], console[1]
             );
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
