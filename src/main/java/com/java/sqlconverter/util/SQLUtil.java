@@ -80,7 +80,7 @@ public final class SQLUtil {
                     }
                     if (leftBracketsCount == ++rightBracketsCount) {
                         if (end + 1 <= chars.length && chars[end + 1] != ';') {
-                            appendWordsIndex.put(end + 1, InsertConverterImpl.DUMMY_SEMICOLON);
+                            appendWordsIndex.put(end + 1, InsertConverterImpl.DUMMY_SEMICOLON + "\n");
                         }
                         break;
                     }
@@ -124,6 +124,6 @@ public final class SQLUtil {
     }
 
     public static String removeUpsertComments(String sqlText){
-        return sqlText.replaceAll("--@\\s*upsert\\s*:.*?\\s*?\n", "");
+        return sqlText.replaceAll("--@\\s*upsert\\s*:.*?\\s*?\n", "\n");
     }
 }
