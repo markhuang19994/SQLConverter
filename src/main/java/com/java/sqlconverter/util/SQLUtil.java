@@ -99,10 +99,16 @@ public final class SQLUtil {
         return sb.toString();
     }
 
+    /**
+     * 把之前被替換掉的敏感詞彙換回
+     * @param sqlText sqlText
+     * @return String
+     */
     public static String recoverInsertSql(String sqlText) {
         for (String sensitiveWord : INSERT_SENSITIVE_WORDS_CONVERT_MAP.keySet()) {
             sqlText = sqlText.replace(INSERT_SENSITIVE_WORDS_CONVERT_MAP.get(sensitiveWord), sensitiveWord);
         }
-        return sqlText.replace(InsertConverterImpl.DUMMY_SEMICOLON, "");
+        return sqlText
+                .replace(InsertConverterImpl.DUMMY_SEMICOLON, "");
     }
 }

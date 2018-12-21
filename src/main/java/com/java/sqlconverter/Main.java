@@ -69,7 +69,7 @@ public class Main {
             String newSqlFileText = InsertAndUpdateConverterFactory
                     .createConverter(sqlDetails, ConvertType.INSERT)
                     .convert2Upsert();
-            System.out.println(SQLUtil.recoverInsertSql(newSqlFileText));
+            System.out.println(removeUpsertComments(SQLUtil.recoverInsertSql(newSqlFileText)));
             System.out.println("耗費時間:" + (System.currentTimeMillis() - l) + "ms");
         } catch (Exception e) {
             if (errorFilePath != null) {
@@ -214,9 +214,9 @@ public class Main {
         return check;
     }
 
-    private static String generateErrorMessageFromReports(List<CommentCheckReport> commentCheckReports, boolean noMatterPass) {
+    private static String generateErrorMessageFromReports(List<CommentCheckReport> reports, boolean noMatterPass) {
         StringBuilder sb = new StringBuilder("錯誤訊息:").append(System.lineSeparator());
-        for (CommentCheckReport commentCheckReport : commentCheckReports) {
+        for (CommentCheckReport commentCheckReport : reports) {
             if (noMatterPass || !commentCheckReport.isPass()) {
                 List<String> errorMessages = commentCheckReport.getErrorMessages();
                 for (String errorMessage : errorMessages) {
@@ -225,6 +225,10 @@ public class Main {
             }
         }
         return sb.toString();
+    }
+
+    private static String removeUpsertComments(String sqlText){
+        return sqlText.replaceAll("--@\\s*upsert\\s*:.*?\\s*?\n", "");
     }
 
     private static void parseArgs(String[] args) {
