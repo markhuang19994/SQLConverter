@@ -3,7 +3,6 @@ package com.java.sqlconverter.validate;
 import com.java.sqlconverter.model.SyntaxCheckReport;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -75,9 +74,8 @@ public class SQLSyntaxCheck {
         return result;
     }
 
-    private String readConsole(Scanner sca) throws IOException {
+    private String readConsole(Scanner sca) {
         StringBuilder builder = new StringBuilder();
-        String line;
         while (sca.hasNextLine()) {
             builder.append(sca.nextLine());
             builder.append(System.getProperty("line.separator"));

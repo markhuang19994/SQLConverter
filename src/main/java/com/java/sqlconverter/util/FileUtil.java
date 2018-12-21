@@ -12,12 +12,15 @@ import java.util.Scanner;
  * </ul>
  * @since 2018/12/20
  */
-public class FileUtil {
+public final class FileUtil {
+    private FileUtil() {
+    }
+
     public static String readFile(String path) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8))) {
             StringBuilder sb = new StringBuilder();
             String temp;
-            while ((temp  = br.readLine()) != null) {
+            while ((temp = br.readLine()) != null) {
                 sb.append(temp).append("\n");
             }
             return sb.toString();

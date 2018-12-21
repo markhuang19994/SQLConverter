@@ -21,7 +21,6 @@ public class SQLSyntaxCheckBuilder {
         this.port = "1433";
         this.userName = "sa";
         this.password = "p@ssw0rd";
-        this.sqlFileText = sqlFileText;
     }
 
     public static SQLSyntaxCheckBuilder build(){

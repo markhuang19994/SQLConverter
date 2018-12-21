@@ -90,7 +90,7 @@ public final class SQLUtil {
         StringBuilder sb = new StringBuilder();
         int nowIndex = 0;
         for (Integer wordIndex : appendWordsIndex.keySet()) {
-            sb.append(sqlText.substring(nowIndex, wordIndex)).append(appendWordsIndex.get(wordIndex));
+            sb.append(sqlText, nowIndex, wordIndex).append(appendWordsIndex.get(wordIndex));
             nowIndex = wordIndex + 1;
         }
         sb.append(sqlText.substring(nowIndex));
