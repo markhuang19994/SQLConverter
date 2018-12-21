@@ -62,7 +62,6 @@ public class Main {
             commentCheck.register(new CommentRuleByAndy());
             commentCheck.register(new CommentRuleByMark());
             List<CommentCheckReport> commentCheckReports = commentCheck.generateCommentAndLine().processCommentRule();
-
             if (!commentCheck.isAllPass()) {
                 String errorMessage = SQLUtil.generateErrorMessageFromReports(commentCheckReports, false);
                 throw new IllegalArgumentException(errorMessage);
