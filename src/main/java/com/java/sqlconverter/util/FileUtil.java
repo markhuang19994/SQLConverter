@@ -1,8 +1,7 @@
 package com.java.sqlconverter.util;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
 
@@ -15,13 +14,14 @@ import java.util.Scanner;
  */
 public class FileUtil {
     public static String readFile(String path) {
-        try (Scanner sca = new Scanner(new File(path))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8))) {
             StringBuilder sb = new StringBuilder();
-            while (sca.hasNextLine()) {
-                sb.append(sca.nextLine()).append("\n");
+            String temp;
+            while ((temp  = br.readLine()) != null) {
+                sb.append(temp).append("\n");
             }
             return sb.toString();
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return "";
