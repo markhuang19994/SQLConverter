@@ -34,7 +34,7 @@ public final class StringUtil {
         return newStrs;
     }
 
-    public static boolean checkStringWithRegex(String str, List<String> regexs) {
+    public static boolean checkStringMatchRegexs(String str, List<String> regexs) {
         for (String regex : regexs) {
             if (str.matches(regex)) {
                 return true;

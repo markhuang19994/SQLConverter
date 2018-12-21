@@ -37,7 +37,7 @@ public class Main {
     public static void main(String[] args) {
         try {
             boolean isArgParse = parseArgs(args);
-            if (!isArgParse){
+            if (!isArgParse) {
                 return;
             }
             String sqlText = FileUtil.readFile(sqlFilePath);
@@ -107,7 +107,7 @@ public class Main {
                     String comment = commentAndLine.getComment();
                     int line = commentAndLine.getLine();
                     if (comment.indexOf("--{}") == 0) {
-                        boolean isPass = StringUtil.checkStringWithRegex(comment, regexs);
+                        boolean isPass = StringUtil.checkStringMatchRegexs(comment, regexs);
                         if (!isPass) {
                             errorMessages.add(String.format("第%d行:%s格式錯誤,正確格式為:%s",
                                     line, comment, correctFormat
@@ -115,7 +115,7 @@ public class Main {
                         }
                     }
                 }
-                errorMessages.addAll(checkRational(commentAndLines));
+                errorMessages.addAll(checkLogicRational(commentAndLines));
                 return new CommentCheckReport(errorMessages.size() == 0, errorMessages);
             }
 
@@ -124,7 +124,7 @@ public class Main {
                 return line.matches("^(--\\{}.*)$");
             }
 
-            private List<String> checkRational(List<CommentAndLine> commentAndLines) {
+            private List<String> checkLogicRational(List<CommentAndLine> commentAndLines) {
                 List<String> errorMessages = new ArrayList<>();
                 boolean isUpdateDeclare = false;
                 boolean isInitDeclare = false;
@@ -171,7 +171,7 @@ public class Main {
                     String comment = commentAndLine.getComment();
                     int line = commentAndLine.getLine();
                     if (comment.indexOf("--@") == 0) {
-                        boolean isPass = StringUtil.checkStringWithRegex(comment, regexs);
+                        boolean isPass = StringUtil.checkStringMatchRegexs(comment, regexs);
                         if (!isPass) {
                             errorMessages.add(String.format("第%d行:%s格式錯誤,正確格式為:%s",
                                     line, comment, correctFormat
@@ -179,7 +179,7 @@ public class Main {
                         }
                     }
                 }
-                errorMessages.addAll(checkRational(commentAndLines));
+                errorMessages.addAll(checkLogicRational(commentAndLines));
                 return new CommentCheckReport(errorMessages.size() == 0, errorMessages);
             }
 
@@ -188,10 +188,10 @@ public class Main {
                 return line.matches("^(--@.*)$");
             }
 
-            private List<String> checkRational(List<CommentAndLine> commentAndLines) {
+            private List<String> checkLogicRational(List<CommentAndLine> commentAndLines) {
                 List<String> errorMessages = new ArrayList<>();
-                int upserOnCount = 0;
-                int upserOffCount = 0;
+                int upsertOnCount = 0;
+                int upsertOffCount = 0;
                 boolean isPkDeclare = false;
                 for (CommentAndLine commentAndLine : commentAndLines) {
                     String comment = commentAndLine.getComment();
@@ -199,15 +199,15 @@ public class Main {
                     if (comment.contains("pk")) {
                         isPkDeclare = true;
                     } else if (comment.matches("--@\\s*upsert\\s*:\\s*on")) {
-                        upserOnCount += 1;
+                        upsertOnCount += 1;
                     } else if (comment.matches("--@\\s*upsert\\s*:\\s*off")) {
-                        upserOffCount++;
-                        if (upserOnCount < upserOffCount) {
+                        upsertOffCount++;
+                        if (upsertOnCount < upsertOffCount) {
                             errorMessages.add(String.format("第%d行:uppsert:off之前要先宣告upsert:on", line));
                         }
                     }
                 }
-                if (upserOnCount > 0 && !isPkDeclare) {
+                if (upsertOnCount > 0 && !isPkDeclare) {
                     errorMessages.add("如果有宣告upsert,應該要在開頭先宣告=>pk:primaryKey");
                 }
                 return errorMessages;
