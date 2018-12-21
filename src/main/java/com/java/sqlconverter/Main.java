@@ -2,17 +2,15 @@ package com.java.sqlconverter;
 
 import com.java.sqlconverter.constant.ConvertType;
 import com.java.sqlconverter.factory.InsertAndUpdateConverterFactory;
-import com.java.sqlconverter.model.SQLDetails;
 import com.java.sqlconverter.model.CommentCheckReport;
+import com.java.sqlconverter.model.SQLDetails;
 import com.java.sqlconverter.model.SyntaxCheckReport;
 import com.java.sqlconverter.util.FileUtil;
-import com.java.sqlconverter.validate.CommentRule;
 import com.java.sqlconverter.util.SQLUtil;
-import com.java.sqlconverter.util.StringUtil;
-import com.java.sqlconverter.validate.*;
+import com.java.sqlconverter.validate.SQLCommentCheck;
 import com.java.sqlconverter.validate.builder.SQLSyntaxCheckBuilder;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * @author MarkHuang
@@ -60,10 +58,12 @@ public class Main {
             SQLDetails sqlDetails = new SQLDetails(
                     SQLUtil.complementDummyInsertSemicolonAndReplaceSensitiveWordsInInsertValues(sqlText)
             );
-            SQLCommentCheck commentChecker = validateSql(sqlText);
-            List<CommentCheckReport> commentCheckReports = commentChecker.generateCommentAndLine().processCommentRule();
+            SQLCommentCheck commentCheck = new SQLCommentCheck(sqlText);
+            commentCheck.register(new CommentRuleByAndy());
+            commentCheck.register(new CommentRuleByMark());
+            List<CommentCheckReport> commentCheckReports = commentCheck.generateCommentAndLine().processCommentRule();
 
-            if (!commentChecker.isAllPass()) {
+            if (!commentCheck.isAllPass()) {
                 String errorMessage = SQLUtil.generateErrorMessageFromReports(commentCheckReports, false);
                 throw new IllegalArgumentException(errorMessage);
             }
@@ -80,141 +80,6 @@ public class Main {
             }
             e.printStackTrace();
         }
-    }
-
-    /**
-     * 初始化需要檢驗的註釋
-     *
-     * @param sqlText sqlText
-     * @return SQLCommentCheck
-     */
-    private static SQLCommentCheck validateSql(String sqlText) {
-        SQLCommentCheck check = new SQLCommentCheck(sqlText);
-
-        check.register(new CommentRule() {
-            private final List<String> regexs = Arrays.asList(
-                    "--\\{}\\s*?init\\s*?", "--\\{}\\s*?update\\s*?",
-                    "--\\{}\\s*?SYS_TYPE\\s*?", "--\\{}\\s*?TRANS_TYPE\\s*?",
-                    "--\\{}\\s*?NORMAL_TYPE\\s*?"
-            );
-
-            private final String correctFormat = "--{} + init|update|SYS_TYPE|TRANS_TYPE|NORMAL_TYPE";
-
-            @Override
-            public CommentCheckReport checkComment(List<CommentAndLine> commentAndLines) {
-                List<String> errorMessages = new ArrayList<>();
-                for (CommentAndLine commentAndLine : commentAndLines) {
-                    String comment = commentAndLine.getComment();
-                    int line = commentAndLine.getLine();
-                    if (comment.indexOf("--{}") == 0) {
-                        boolean isPass = StringUtil.checkStringMatchRegexs(comment, regexs);
-                        if (!isPass) {
-                            errorMessages.add(String.format("第%d行:%s格式錯誤,正確格式為:%s",
-                                    line, comment, correctFormat
-                            ));
-                        }
-                    }
-                }
-                errorMessages.addAll(checkLogicRational(commentAndLines));
-                return new CommentCheckReport(errorMessages.size() == 0, errorMessages);
-            }
-
-            @Override
-            public boolean isLineNeedCheck(String line) {
-                return line.matches("^(--\\{}.*)$");
-            }
-
-            private List<String> checkLogicRational(List<CommentAndLine> commentAndLines) {
-                List<String> errorMessages = new ArrayList<>();
-                boolean isUpdateDeclare = false;
-                boolean isInitDeclare = false;
-                boolean isTypeDeclare = false;
-                for (CommentAndLine commentAndLine : commentAndLines) {
-                    String comment = commentAndLine.getComment();
-                    int line = commentAndLine.getLine();
-                    if (comment.contains("init")) {
-                        if (isUpdateDeclare) {
-                            errorMessages.add(String.format("第%d行:初始化邏輯錯誤,%s", line, "初始化應該放置在更新前"));
-                        }
-                        isInitDeclare = true;
-                    } else if (comment.contains("update")) {
-                        isUpdateDeclare = true;
-                    } else if (comment.contains("SYS_TYPE")
-                            || comment.contains("TRANS_TYPE")
-                            || comment.contains("NORMAL_TYPE")) {
-                        if (isInitDeclare || isUpdateDeclare) {
-                            errorMessages.add(String.format("第%d行:%s", line, "類型區塊應該放置在檔案最前面"));
-                        }
-                        isTypeDeclare = true;
-                    }
-                }
-                if (!isTypeDeclare) {
-                    errorMessages.add("類型區塊未宣告{SYS_TYPE/TRANS_TYPE/NORMAL_TYPE}");
-                }
-                return errorMessages;
-            }
-        });
-
-
-        check.register(new CommentRule() {
-            private final List<String> regexs = Arrays.asList(
-                    "--@\\s*?pk\\s*?:\\s*?.+",
-                    "--@\\s*?upsert\\s*?:\\s*?(on|off)"
-            );
-
-            private final String correctFormat = "--@update:on/off|--@pk:primaryKey";
-
-            @Override
-            public CommentCheckReport checkComment(List<CommentAndLine> commentAndLines) {
-                List<String> errorMessages = new ArrayList<>();
-                for (CommentAndLine commentAndLine : commentAndLines) {
-                    String comment = commentAndLine.getComment();
-                    int line = commentAndLine.getLine();
-                    if (comment.indexOf("--@") == 0) {
-                        boolean isPass = StringUtil.checkStringMatchRegexs(comment, regexs);
-                        if (!isPass) {
-                            errorMessages.add(String.format("第%d行:%s格式錯誤,正確格式為:%s",
-                                    line, comment, correctFormat
-                            ));
-                        }
-                    }
-                }
-                errorMessages.addAll(checkLogicRational(commentAndLines));
-                return new CommentCheckReport(errorMessages.size() == 0, errorMessages);
-            }
-
-            @Override
-            public boolean isLineNeedCheck(String line) {
-                return line.matches("^(--@.*)$");
-            }
-
-            private List<String> checkLogicRational(List<CommentAndLine> commentAndLines) {
-                List<String> errorMessages = new ArrayList<>();
-                int upsertOnCount = 0;
-                int upsertOffCount = 0;
-                boolean isPkDeclare = false;
-                for (CommentAndLine commentAndLine : commentAndLines) {
-                    String comment = commentAndLine.getComment();
-                    int line = commentAndLine.getLine();
-                    if (comment.contains("pk")) {
-                        isPkDeclare = true;
-                    } else if (comment.matches("--@\\s*upsert\\s*:\\s*on")) {
-                        upsertOnCount += 1;
-                    } else if (comment.matches("--@\\s*upsert\\s*:\\s*off")) {
-                        upsertOffCount++;
-                        if (upsertOnCount < upsertOffCount) {
-                            errorMessages.add(String.format("第%d行:uppsert:off之前要先宣告upsert:on", line));
-                        }
-                    }
-                }
-                if (upsertOnCount > 0 && !isPkDeclare) {
-                    errorMessages.add("如果有宣告upsert,應該要在開頭先宣告=>pk:primaryKey");
-                }
-                return errorMessages;
-            }
-        });
-
-        return check;
     }
 
     private static boolean parseArgs(String[] args) {
