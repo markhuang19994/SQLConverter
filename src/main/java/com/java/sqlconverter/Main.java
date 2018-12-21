@@ -36,7 +36,10 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
-            parseArgs(args);
+            boolean isArgParse = parseArgs(args);
+            if (!isArgParse){
+                return;
+            }
             String sqlText = FileUtil.readFile(sqlFilePath);
             long l = System.currentTimeMillis();
             //1.check sql檔案格式是否正確
@@ -231,28 +234,27 @@ public class Main {
         return sqlText.replaceAll("--@\\s*upsert\\s*:.*?\\s*?\n", "");
     }
 
-    private static void parseArgs(String[] args) {
+    private static boolean parseArgs(String[] args) {
         int i = 0;
 
         while (i < args.length) {
+            if ((i + 1) >= args.length) {
+                usage();
+                return false;
+            }
             if (args[i].compareTo("--sql.file.path") == 0 || args[i].compareTo("-sfp") == 0) {
-                if ((i + 1) >= args.length) {
-                    usage();
-                }
                 sqlFilePath = args[i + 1];
                 i += 2;
             } else if (args[i].compareTo("--error.file.path") == 0 || args[i].compareTo("-efp") == 0) {
-                if ((i + 1) >= args.length) {
-                    usage();
-                }
                 errorFilePath = args[i + 1];
                 i += 2;
             } else {
                 System.err.println("Unrecognized parameter: " + args[i]);
                 usage();
-                break;
+                return false;
             }
         }
+        return true;
     }
 
     private static void usage() {
