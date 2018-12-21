@@ -25,6 +25,19 @@ public class CommentRuleByMark implements CommentRule {
     @Override
     public CommentCheckReport checkComment(List<CommentAndLine> commentAndLines) {
         List<String> errorMessages = new ArrayList<>();
+        errorMessages.addAll(checkFormatCorrect(commentAndLines));
+        errorMessages.addAll(checkLogicRational(commentAndLines));
+        boolean isPass = errorMessages.size() == 0;
+        return new CommentCheckReport(isPass, errorMessages);
+    }
+
+    @Override
+    public boolean isLineNeedCheck(String line) {
+        return line.matches("^(--@.*)$");
+    }
+
+    private List<String> checkFormatCorrect(List<CommentAndLine> commentAndLines) {
+        List<String> errorMessages = new ArrayList<>();
         for (CommentAndLine commentAndLine : commentAndLines) {
             String comment = commentAndLine.getComment();
             int line = commentAndLine.getLine();
@@ -38,13 +51,7 @@ public class CommentRuleByMark implements CommentRule {
                 }
             }
         }
-        errorMessages.addAll(checkLogicRational(commentAndLines));
-        return new CommentCheckReport(errorMessages.size() == 0, errorMessages);
-    }
-
-    @Override
-    public boolean isLineNeedCheck(String line) {
-        return line.matches("^(--@.*)$");
+        return errorMessages;
     }
 
     private List<String> checkLogicRational(List<CommentAndLine> commentAndLines) {
