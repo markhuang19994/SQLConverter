@@ -34,11 +34,12 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
-            boolean isArgParse = parseArgs(args);
-            if (!isArgParse) {
-                return;
-            }
-            String sqlText = FileUtil.readFile(sqlFilePath);
+//            boolean isArgParse = parseArgs(args);
+//            if (!isArgParse) {
+//                return;
+//            }
+//            String sqlText = FileUtil.readFile(sqlFilePath);
+            String sqlText = "SELECT * FROM PCL_CUSTOMER;";
             long l = System.currentTimeMillis();
 
 //            //1.check 自定義註釋是否正確 如:--{} init等等
@@ -61,7 +62,7 @@ public class Main {
 //            System.out.println(SQLUtil.removeUpsertComments(SQLUtil.recoverInsertSql(newSqlFileText)));
 
             //3.check sql檔案格式是否正確
-            System.out.println("聾子聽到瞎子說他看見啞巴說話~");
+            System.out.println("asdasdasd~");
             SyntaxCheckReport syntaxCheckReport = SQLSyntaxCheckBuilder
                     .build()
                     .setSqlFileText(SQLUtil.removeUpsertComments(SQLUtil.recoverInsertSql(sqlText)))
@@ -70,6 +71,7 @@ public class Main {
                     .setUserName("sa")
                     .setPassword("p@ssw0rd")
                     .setDatabase("XCOLA")
+                    .setNeedExec(true)
                     .create()
                     .check();
             System.out.println(syntaxCheckReport.getCorrectMessage());

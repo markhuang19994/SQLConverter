@@ -16,14 +16,16 @@ public class SQLSyntaxCheckBuilder {
     private String password;
     private String database;
     private String sqlFileText;
+    private boolean isNeedExec;
 
-    private SQLSyntaxCheckBuilder(){}
+    private SQLSyntaxCheckBuilder() {
+    }
 
-    public static SQLSyntaxCheckBuilder build(){
+    public static SQLSyntaxCheckBuilder build() {
         return new SQLSyntaxCheckBuilder();
     }
 
-    public SQLSyntaxCheckBuilder setHost(String host){
+    public SQLSyntaxCheckBuilder setHost(String host) {
         this.host = host;
         return this;
     }
@@ -43,18 +45,30 @@ public class SQLSyntaxCheckBuilder {
         return this;
     }
 
-    public SQLSyntaxCheckBuilder setDatabase(String password) {
+    public SQLSyntaxCheckBuilder setDatabase(String database) {
         this.database = database;
         return this;
     }
-
 
     public SQLSyntaxCheckBuilder setSqlFileText(String sqlFileText) {
         this.sqlFileText = sqlFileText;
         return this;
     }
 
-    public SQLSyntaxCheck create(){
-        return new SQLSyntaxCheck(this.host, this.port, this.userName, this.password, this.sqlFileText);
+    public SQLSyntaxCheckBuilder setNeedExec(boolean needExec) {
+        isNeedExec = needExec;
+        return this;
+    }
+
+    public SQLSyntaxCheck create() {
+        return new SQLSyntaxCheck(
+                this.host,
+                this.port,
+                this.userName,
+                this.password,
+                this.database,
+                this.sqlFileText,
+                this.isNeedExec
+        );
     }
 }

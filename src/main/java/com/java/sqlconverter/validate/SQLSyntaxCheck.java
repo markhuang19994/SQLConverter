@@ -25,20 +25,26 @@ public class SQLSyntaxCheck {
     private String password;
     private String database;
     private String sqlFileText;
+    private boolean isNeedExec;
 
     public SQLSyntaxCheck(String host, String port, String userName,
-                          String password, String sqlFileText) {
+                          String password, String database, String sqlFileText,
+                          boolean isNeedExec
+    ) {
         this.host = host;
         this.port = port;
         this.userName = userName;
         this.password = password;
+        this.database = database;
         this.sqlFileText = sqlFileText;
+        this.isNeedExec = isNeedExec;
     }
 
     public SyntaxCheckReport check() {
+        String fileText = isNeedExec ? this.sqlFileText : "SET NOEXEC ON;\n" + this.sqlFileText + "\nSET NOEXEC OFF;";
         File tempFile = createTempFile(
                 String.valueOf(System.currentTimeMillis()), ".sql",
-                "SET NOEXEC ON;\n" + this.sqlFileText + "\nSET NOEXEC OFF;"
+                fileText
         );
         ProcessBuilder pb = new ProcessBuilder(generateComment(tempFile.getAbsolutePath()));
         pb.directory(tempFile.getParentFile());
