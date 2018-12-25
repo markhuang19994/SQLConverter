@@ -14,14 +14,10 @@ public class SQLSyntaxCheckBuilder {
     private String port;
     private String userName;
     private String password;
+    private String database;
     private String sqlFileText;
 
-    private SQLSyntaxCheckBuilder(){
-        this.host = "localhost";
-        this.port = "1433";
-        this.userName = "sa";
-        this.password = "p@ssw0rd";
-    }
+    private SQLSyntaxCheckBuilder(){}
 
     public static SQLSyntaxCheckBuilder build(){
         return new SQLSyntaxCheckBuilder();
@@ -46,6 +42,12 @@ public class SQLSyntaxCheckBuilder {
         this.password = password;
         return this;
     }
+
+    public SQLSyntaxCheckBuilder setDatabase(String password) {
+        this.database = database;
+        return this;
+    }
+
 
     public SQLSyntaxCheckBuilder setSqlFileText(String sqlFileText) {
         this.sqlFileText = sqlFileText;

@@ -48,8 +48,10 @@ public class Main {
                     .setPort("1433")
                     .setUserName("sa")
                     .setPassword("p@ssw0rd")
+                    .setDatabase("XCOLA")
                     .create()
                     .check();
+            System.out.println(syntaxCheckReport.getCorrectMessage());
             if (!syntaxCheckReport.isSyntaxCorrect()) {
                 throw new IllegalArgumentException("SQL syntax is not correct: \n" + syntaxCheckReport.getErrorMessage());
             }

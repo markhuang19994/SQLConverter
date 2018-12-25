@@ -3,6 +3,8 @@ package com.java.sqlconverter.validate;
 import com.java.sqlconverter.model.SyntaxCheckReport;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -21,6 +23,7 @@ public class SQLSyntaxCheck {
     private String port;
     private String userName;
     private String password;
+    private String database;
     private String sqlFileText;
 
     public SQLSyntaxCheck(String host, String port, String userName,
@@ -37,10 +40,7 @@ public class SQLSyntaxCheck {
                 String.valueOf(System.currentTimeMillis()), ".sql",
                 "SET NOEXEC ON;\n" + this.sqlFileText + "\nSET NOEXEC OFF;"
         );
-        ProcessBuilder pb = new ProcessBuilder(
-                "sqlcmd", "-S", String.format("%s,%s", host, port), "-U", userName, "-P", password
-                , "-i", tempFile.getAbsolutePath()
-        );
+        ProcessBuilder pb = new ProcessBuilder(generateComment(tempFile.getAbsolutePath()));
         pb.directory(tempFile.getParentFile());
 
         try {
@@ -58,6 +58,34 @@ public class SQLSyntaxCheck {
         } finally {
             tempFile.deleteOnExit();
         }
+    }
+
+    private List<String> generateComment(String temFilePath) {
+        List<String> result = new ArrayList<>();
+        result.add("sqlcmd");
+        if (this.host != null) {
+            result.add("-S");
+            if (this.port != null) {
+                result.add(String.format("%s,%s", host, port));
+            } else {
+                result.add(this.host);
+            }
+        }
+        if (this.userName != null) {
+            result.add("-U");
+            result.add(this.userName);
+        }
+        if (this.password != null) {
+            result.add("-P");
+            result.add(this.password);
+        }
+        if (this.database != null) {
+            result.add("-d");
+            result.add(this.database);
+        }
+        result.add("-i");
+        result.add(temFilePath);
+        return result;
     }
 
     private String[] processConsole(Process process) {
