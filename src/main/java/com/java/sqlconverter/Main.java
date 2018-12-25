@@ -40,10 +40,31 @@ public class Main {
             }
             String sqlText = FileUtil.readFile(sqlFilePath);
             long l = System.currentTimeMillis();
-            //1.check sql檔案格式是否正確
+
+//            //1.check 自定義註釋是否正確 如:--{} init等等
+//            SQLDetails sqlDetails = new SQLDetails(
+//                    SQLUtil.complementDummyInsertSemicolonAndReplaceSensitiveWordsInInsertValues(sqlText)
+//            );
+//            SQLCommentCheck commentCheck = new SQLCommentCheck(sqlText);
+//            commentCheck.register(new CommentRuleByAndy());
+//            commentCheck.register(new CommentRuleByMark());
+//            List<CommentCheckReport> commentCheckReports = commentCheck.generateCommentAndLine().processCommentRule();
+//            if (!commentCheck.isAllPass()) {
+//                String errorMessage = SQLUtil.generateErrorMessageFromReports(commentCheckReports, false);
+//                throw new IllegalArgumentException(errorMessage);
+//            }
+
+//            //2.將insert轉換成update + insert (upsert)
+//            String newSqlFileText = InsertAndUpdateConverterFactory
+//                    .createConverter(sqlDetails, ConvertType.INSERT)
+//                    .convert2Upsert();
+//            System.out.println(SQLUtil.removeUpsertComments(SQLUtil.recoverInsertSql(newSqlFileText)));
+
+            //3.check sql檔案格式是否正確
+            System.out.println("聾子聽到瞎子說他看見啞巴說話~");
             SyntaxCheckReport syntaxCheckReport = SQLSyntaxCheckBuilder
                     .build()
-                    .setSqlFileText(sqlText)
+                    .setSqlFileText(SQLUtil.removeUpsertComments(SQLUtil.recoverInsertSql(sqlText)))
                     .setHost("localhost")
                     .setPort("1433")
                     .setUserName("sa")
@@ -55,25 +76,6 @@ public class Main {
             if (!syntaxCheckReport.isSyntaxCorrect()) {
                 throw new IllegalArgumentException("SQL syntax is not correct: \n" + syntaxCheckReport.getErrorMessage());
             }
-
-            //2.check 自定義註釋是否正確 如:--{} init等等
-            SQLDetails sqlDetails = new SQLDetails(
-                    SQLUtil.complementDummyInsertSemicolonAndReplaceSensitiveWordsInInsertValues(sqlText)
-            );
-            SQLCommentCheck commentCheck = new SQLCommentCheck(sqlText);
-            commentCheck.register(new CommentRuleByAndy());
-            commentCheck.register(new CommentRuleByMark());
-            List<CommentCheckReport> commentCheckReports = commentCheck.generateCommentAndLine().processCommentRule();
-            if (!commentCheck.isAllPass()) {
-                String errorMessage = SQLUtil.generateErrorMessageFromReports(commentCheckReports, false);
-                throw new IllegalArgumentException(errorMessage);
-            }
-
-            //3.將insert轉換成update + insert (upsert)
-            String newSqlFileText = InsertAndUpdateConverterFactory
-                    .createConverter(sqlDetails, ConvertType.INSERT)
-                    .convert2Upsert();
-            System.out.println(SQLUtil.removeUpsertComments(SQLUtil.recoverInsertSql(newSqlFileText)));
             System.out.println("耗費時間:" + (System.currentTimeMillis() - l) + "ms");
         } catch (Exception e) {
             if (errorFilePath != null) {
