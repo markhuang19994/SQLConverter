@@ -2,15 +2,12 @@ package com.java.sqlconverter;
 
 import com.java.sqlconverter.constant.ConvertType;
 import com.java.sqlconverter.factory.InsertAndUpdateConverterFactory;
-import com.java.sqlconverter.model.CommentCheckReport;
 import com.java.sqlconverter.model.SQLDetails;
-import com.java.sqlconverter.model.SyntaxCheckReport;
 import com.java.sqlconverter.util.FileUtil;
 import com.java.sqlconverter.util.SQLUtil;
-import com.java.sqlconverter.validate.SQLCommentCheck;
-import com.java.sqlconverter.validate.builder.SQLSyntaxCheckBuilder;
 
-import java.util.List;
+import java.io.File;
+import java.nio.file.Files;
 
 /**
  * @author MarkHuang
@@ -38,14 +35,22 @@ public class Main {
 //            if (!isArgParse) {
 //                return;
 //            }
-//            String sqlText = FileUtil.readFile(sqlFilePath);
-            String sqlText = "SELECT * FROM PCL_CUSTOMER;";
+            String p = "/home/mark/Desktop/sqlConverter/src/main/resources/test3.sql";
+            String sqlText = FileUtil.readFile(p);
+//            String sqlText =
+//                    "--@pk:OID\n" +
+//                    "--@upsert:on\n" +
+//                    "INSERT INTO dbo.PCL_EFISC_BANK_CODE (OID, BANK_CODE, BANK_NAME) VALUES (N'305EDDE9F1F,E4A9CA009F62E5A7FDCBE', N'14,7', N'三信商業銀行');\n" +
+//                    "INSERT INTO dbo.PCL_EFISC_BANK_CODE (OID, BANK_CODE, BANK_NAME) VALUES (N'62B0ECF110DF466BBADFE0DE15EEDA65', N'053', N'台中商業銀行');\n" +
+//                    "INSERT INTO dbo.PCL_EFISC_BANK_CODE (OID, BANK_CODE, BANK_NAME) VALUES (N'C848489CB8B74FA7858E66641904A170', N'005', N'台灣土地銀行');\n" +
+//                    "INSERT INTO dbo.PCL_EFISC_BANK_CODE (OID, BANK_CODE, BANK_NAME) VALUES (N'2FD59AA539CF4A20A4A0A43C14C9264C', N'050', N'台灣中小企業銀行');\n" +
+//                    "INSERT INTO dbo.PCL_EFISC_BANK_CODE (OID, BANK_CODE, BANK_NAME) VALUES (N'983D2E3556EB4ED394EB4BBCA2F2FB78', N'115', N'基隆市第二信用合作社');\n" +
+//                    "INSERT INTO dbo.PCL_EFISC_BANK_CODE (OID, BANK_CODE, BANK_NAME) VALUES (N'3E755CC2E50E433DA42D08EE61B7232B', N'132', N'新竹第三信用合作社');\n" +
+//                    "--@upsert:off\n";
             long l = System.currentTimeMillis();
 
 //            //1.check 自定義註釋是否正確 如:--{} init等等
-//            SQLDetails sqlDetails = new SQLDetails(
-//                    SQLUtil.complementDummyInsertSemicolonAndReplaceSensitiveWordsInInsertValues(sqlText)
-//            );
+            SQLDetails sqlDetails = new SQLDetails(sqlText);
 //            SQLCommentCheck commentCheck = new SQLCommentCheck(sqlText);
 //            commentCheck.register(new CommentRuleByAndy());
 //            commentCheck.register(new CommentRuleByMark());
@@ -55,29 +60,29 @@ public class Main {
 //                throw new IllegalArgumentException(errorMessage);
 //            }
 
-//            //2.將insert轉換成update + insert (upsert)
-//            String newSqlFileText = InsertAndUpdateConverterFactory
-//                    .createConverter(sqlDetails, ConvertType.INSERT)
-//                    .convert2Upsert();
-//            System.out.println(SQLUtil.removeUpsertComments(SQLUtil.recoverInsertSql(newSqlFileText)));
+            //2.將insert轉換成update + insert (upsert)
+            String newSqlFileText = InsertAndUpdateConverterFactory
+                    .createConverter(sqlDetails, ConvertType.INSERT)
+                    .convert2Upsert();
+            Files.write(new File(new File(p).getParent(), "res.sql").toPath(), SQLUtil.removeUpsertComments(SQLUtil.recoverStatementSensitiveWord(newSqlFileText)).getBytes());
 
             //3.check sql檔案格式是否正確
-            System.out.println("asdasdasd~");
-            SyntaxCheckReport syntaxCheckReport = SQLSyntaxCheckBuilder
-                    .build()
-                    .setSqlFileText(SQLUtil.removeUpsertComments(SQLUtil.recoverInsertSql(sqlText)))
-                    .setHost("localhost")
-                    .setPort("1433")
-                    .setUserName("sa")
-                    .setPassword("p@ssw0rd")
-                    .setDatabase("XCOLA")
-                    .setNeedExec(true)
-                    .create()
-                    .check();
-            System.out.println(syntaxCheckReport.getCorrectMessage());
-            if (!syntaxCheckReport.isSyntaxCorrect()) {
-                throw new IllegalArgumentException("SQL syntax is not correct: \n" + syntaxCheckReport.getErrorMessage());
-            }
+//            System.out.println("asdasdasd~");
+//            SyntaxCheckReport syntaxCheckReport = SQLSyntaxCheckBuilder
+//                    .build()
+//                    .setSqlFileText(SQLUtil.removeUpsertComments(SQLUtil.recoverInsertSql(sqlText)))
+//                    .setHost("localhost")
+//                    .setPort("1433")
+//                    .setUserName("sa")
+//                    .setPassword("p@ssw0rd")
+//                    .setDatabase("XCOLA")
+//                    .setNeedExec(true)
+//                    .create()
+//                    .check();
+//            System.out.println(syntaxCheckReport.getCorrectMessage());
+//            if (!syntaxCheckReport.isSyntaxCorrect()) {
+//                throw new IllegalArgumentException("SQL syntax is not correct: \n" + syntaxCheckReport.getErrorMessage());
+//            }
             System.out.println("耗費時間:" + (System.currentTimeMillis() - l) + "ms");
         } catch (Exception e) {
             if (errorFilePath != null) {
