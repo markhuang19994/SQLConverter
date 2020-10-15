@@ -27,23 +27,6 @@ public class InsertConverter {
     public InsertConverter(SQLDetail sqlDetail) {
         this.sqlDetail = sqlDetail;
     }
-
-//    private String convert2Update() {
-//        String newSqlFileText = this.sqlDetails.getSqlFileText();
-//        StringBuilder sb = new StringBuilder();
-//        sb.append("\n");
-//        for (String sqlText : this.sqlDetails.getUpsertTextBlocks()) {
-//            List<InsertModel> insertModels = parseInsert(sqlText);
-//            for (InsertModel insertModel : insertModels) {
-//                String temp = genUpdateStatement(insertModel);
-//                sb.append(temp).append("\n");
-//            }
-//            int len = sb.length();
-//            sb.delete(len - 1, len);
-//            newSqlFileText = newSqlFileText.replace(sqlText, sb.toString());
-//        }
-//        return newSqlFileText;
-//    }
     
     /**
      * 將sql檔案有包含在upsert:on與upsert:off之間的insert轉換成update + insert
