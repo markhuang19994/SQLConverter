@@ -34,8 +34,8 @@ public final class StringUtil {
         return newStrs;
     }
 
-    public static boolean checkStringMatchRegexs(String str, List<String> regexs) {
-        for (String regex : regexs) {
+    public static boolean checkStringMatchRegexList(String str, List<String> regexList) {
+        for (String regex : regexList) {
             if (str.matches(regex)) {
                 return true;
             }

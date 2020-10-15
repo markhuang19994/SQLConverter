@@ -1,14 +1,8 @@
 package com.java.sqlconverter.util;
 
-import com.java.sqlconverter.converter.impl.InsertConverterImpl;
-import com.java.sqlconverter.model.CommentCheckReport;
-
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author MarkHuang
@@ -86,19 +80,6 @@ public final class SQLUtil {
             statement = statement.replace(INSERT_SENSITIVE_WORDS_CONVERT_MAP.get(sensitiveWord), sensitiveWord);
         }
         return statement;
-    }
-    
-    public static String generateErrorMessageFromReports(List<CommentCheckReport> reports, boolean noMatterPass) {
-        StringBuilder sb = new StringBuilder("錯誤訊息:").append(System.lineSeparator());
-        for (CommentCheckReport commentCheckReport : reports) {
-            if (noMatterPass || !commentCheckReport.isPass()) {
-                List<String> errorMessages = commentCheckReport.getErrorMessages();
-                for (String errorMessage : errorMessages) {
-                    sb.append(errorMessage).append(System.lineSeparator());
-                }
-            }
-        }
-        return sb.toString();
     }
     
     public static String removeUpsertComments(String sqlText) {

@@ -1,4 +1,4 @@
-package com.java.sqlconverter.model;
+package com.java.sqlconverter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,19 +13,18 @@ import java.util.regex.Pattern;
  * </ul>
  * @since 2018/12/18
  */
-public class SQLDetails {
-    private List<String> upsertBlocks;
-    private List<String> primaryKeys;
-    private String       sqlFileText;
+public class SQLDetail {
+    private final List<String> upsertBlocks;
+    private final List<String> primaryKeys;
+    private final String       sqlFileText;
     
-    public SQLDetails(String sqlFileText) {
+    public SQLDetail(String sqlFileText) {
         this.sqlFileText = sqlFileText;
         this.primaryKeys = getPrimaryKeys(sqlFileText);
         this.upsertBlocks = getUpsertBlocks(sqlFileText);
     }
     
     private List<String> getPrimaryKeys(String sqlFileText) {
-        final List<String> primaryKeys = new ArrayList<>();
         Pattern p = Pattern.compile("--@\\s*pk\\s*:\\s*(.*?)\\s");
         Matcher m = p.matcher(sqlFileText);
         if (m.find()) {
@@ -72,24 +71,12 @@ public class SQLDetails {
         return upsertBlocks;
     }
     
-    public void setUpsertBlocks(List<String> upsertBlocks) {
-        this.upsertBlocks = upsertBlocks;
-    }
-    
     public List<String> getPrimaryKeys() {
         return new ArrayList<>(this.primaryKeys);
     }
     
-    public void setPrimaryKeys(List<String> primaryKeys) {
-        this.primaryKeys = primaryKeys;
-    }
-    
     public String getSqlFileText() {
         return sqlFileText;
-    }
-    
-    public void setSqlFileText(String sqlFileText) {
-        this.sqlFileText = sqlFileText;
     }
     
 }

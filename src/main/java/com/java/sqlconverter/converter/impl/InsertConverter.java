@@ -1,6 +1,6 @@
 package com.java.sqlconverter.converter.impl;
 
-import com.java.sqlconverter.model.SQLDetails;
+import com.java.sqlconverter.SQLDetail;
 import com.java.sqlconverter.util.SQLUtil;
 import com.java.sqlconverter.util.StringUtil;
 
@@ -16,14 +16,16 @@ import java.util.stream.Collectors;
  * </ul>
  * @since 2018/12/18
  */
-public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.InsertAndUpdateConverterImpl {
+public class InsertConverter {
     
-    private static final String UPDATE_SQL_TEMPLATE = "UPDATE {tableName} SET {colKeyVal} {limitedCondition}";
-    private static final String INSERT_SQL_TEMPLATE = "INSERT INTO {tableName} ({keys}) VALUES ({values})";
-    private static final String UPSERT_TEMPLATE     = "{updateSql}\nIF @@ROWCOUNT=0\n\t{insert}";
+    private static final String    UPDATE_SQL_TEMPLATE = "UPDATE {tableName} SET {colKeyVal} {limitedCondition}";
+    private static final String    INSERT_SQL_TEMPLATE = "INSERT INTO {tableName} ({keys}) VALUES ({values})";
+    private static final String    UPSERT_TEMPLATE     = "{updateSql}\nIF @@ROWCOUNT=0\n\t{insert}";
+    private final        SQLDetail sqlDetail;
     
-    public InsertConverterImpl(SQLDetails sqlDetails) {
-        this.sqlDetails = sqlDetails;
+    
+    public InsertConverter(SQLDetail sqlDetail) {
+        this.sqlDetail = sqlDetail;
     }
 
 //    private String convert2Update() {
@@ -48,10 +50,9 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
      *
      * @return 新的sql檔內容
      */
-    @Override
     public String convert2Upsert() {
-        String newSqlFileText = this.sqlDetails.getSqlFileText();
-        final List<String> upsertTextBlocks = this.sqlDetails.getUpsertBlocks();
+        String newSqlFileText = this.sqlDetail.getSqlFileText();
+        final List<String> upsertTextBlocks = this.sqlDetail.getUpsertBlocks();
         for (int i = 1; i <= upsertTextBlocks.size(); i++) {
             final String sqlText = upsertTextBlocks.get(i - 1);
             final List<InsertModel> insertModels = parseInsert(sqlText, i);
@@ -107,7 +108,7 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
         String[] vals = insertModel.vals;
         StringBuilder sb = new StringBuilder();
         String limitKey = "WHERE";
-        List<String> pks = this.sqlDetails.getPrimaryKeys();
+        List<String> pks = this.sqlDetail.getPrimaryKeys();
         for (int i = 0; i < keys.length; i++) {
             if (pks.contains(keys[i].replaceAll("[\\[\\]]", ""))) {
                 sb.append(String.format(" %s %s = %s", limitKey, keys[i], vals[i]));
@@ -155,6 +156,7 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
      * @return List<InsertModel>
      */
     private List<InsertModel> parseInsert(String sql, int atBlock) {
+        final long l = System.currentTimeMillis();
         final List<InsertStmt> insertList = new ArrayList<>();
         final StringBuilder sb = new StringBuilder();
         
@@ -291,6 +293,7 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
         if (errorMsg.size() > 0) {
             throw new RuntimeException(String.join("\n", errorMsg));
         }
+        System.out.println("ct:" + (System.currentTimeMillis() -l));
         return insertModels;
     }
     
