@@ -25,7 +25,9 @@ public class Main {
             SQLDetail sqlDetail = new SQLDetail(sqlText);
             //2.將insert轉換成update + insert (upsert)
             String newSqlFileText = new InsertConverter(sqlDetail).convert2Upsert();
-            Files.write(new File(new File(p).getParent(), "res.sql").toPath(), SQLUtil.removeUpsertComments(newSqlFileText).getBytes());
+            newSqlFileText = SQLUtil.recoverStatementSensitiveWord(newSqlFileText);
+            newSqlFileText = SQLUtil.removeUpsertComments(newSqlFileText);
+            Files.write(new File(new File(p).getParent(), "res.sql").toPath(), newSqlFileText.getBytes());
             
             System.out.println("耗費時間:" + (System.currentTimeMillis() - l) + "ms");
         } catch (Exception e) {

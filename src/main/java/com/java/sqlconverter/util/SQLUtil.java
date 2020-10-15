@@ -72,14 +72,14 @@ public final class SQLUtil {
     /**
      * 把之前被替換掉的敏感詞彙換回
      *
-     * @param statement sqlText
+     * @param sqlText sqlText
      * @return String
      */
-    public static String recoverStatementSensitiveWord(String statement) {
+    public static String recoverStatementSensitiveWord(String sqlText) {
         for (String sensitiveWord : INSERT_SENSITIVE_WORDS_CONVERT_MAP.keySet()) {
-            statement = statement.replace(INSERT_SENSITIVE_WORDS_CONVERT_MAP.get(sensitiveWord), sensitiveWord);
+            sqlText = sqlText.replace(INSERT_SENSITIVE_WORDS_CONVERT_MAP.get(sensitiveWord), sensitiveWord);
         }
-        return statement;
+        return sqlText;
     }
     
     public static String removeUpsertComments(String sqlText) {

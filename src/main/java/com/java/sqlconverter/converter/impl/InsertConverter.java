@@ -170,16 +170,14 @@ public class InsertConverter {
             
             if (line.matches("^(?i)insert.*$")) {
                 currentInsertStartLine = i;
-                if (sb.length() > 0) {
-                    final String str = sb.toString();
-                    if (isFirst) {
-                        topRemain = str;
-                        isFirst = false;
-                    } else {
-                        insertList.add(new InsertStmt(str, currentInsertStartLine));
-                    }
-                    sb.setLength(0);
+                final String str = sb.toString();
+                if (isFirst) {
+                    topRemain = str;
+                    isFirst = false;
+                } else {
+                    insertList.add(new InsertStmt(str, currentInsertStartLine));
                 }
+                sb.setLength(0);
             }
             
             sb.append(line).append("\n");
@@ -287,7 +285,7 @@ public class InsertConverter {
             if (remain.length() > 0 && !remain.equals(";\n")) {
 //                System.out.println("skip remain:" + remain);
             }
-            insertModels.add(new InsertModel(cleanInsertStmt, atBlock, insertStmt.atLine, tableName, keys, values));
+            insertModels.add(new InsertModel(insertSb.toString(), atBlock, insertStmt.atLine, tableName, keys, values));
         }
         
         if (errorMsg.size() > 0) {
