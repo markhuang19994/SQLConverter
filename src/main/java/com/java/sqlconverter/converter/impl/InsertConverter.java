@@ -156,7 +156,6 @@ public class InsertConverter {
      * @return List<InsertModel>
      */
     private List<InsertModel> parseInsert(String sql, int atBlock) {
-        final long l = System.currentTimeMillis();
         final List<InsertStmt> insertList = new ArrayList<>();
         final StringBuilder sb = new StringBuilder();
         
@@ -291,7 +290,6 @@ public class InsertConverter {
         if (errorMsg.size() > 0) {
             throw new RuntimeException(String.join("\n", errorMsg));
         }
-        System.out.println("ct:" + (System.currentTimeMillis() -l));
         return insertModels;
     }
     

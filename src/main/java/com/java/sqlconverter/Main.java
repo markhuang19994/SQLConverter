@@ -24,10 +24,10 @@ public class Main {
             
             SQLDetail sqlDetail = new SQLDetail(sqlText);
             //2.將insert轉換成update + insert (upsert)
-            String newSqlFileText = new InsertConverter(sqlDetail).convert2Upsert();
-            newSqlFileText = SQLUtil.recoverStatementSensitiveWord(newSqlFileText);
-            newSqlFileText = SQLUtil.removeUpsertComments(newSqlFileText);
-            Files.write(new File(new File(p).getParent(), "res.sql").toPath(), newSqlFileText.getBytes());
+            String newSqlText = new InsertConverter(sqlDetail).convert2Upsert();
+            newSqlText = SQLUtil.recoverStatementSensitiveWord(newSqlText);
+            newSqlText = SQLUtil.removeUpsertComments(newSqlText);
+            Files.write(new File(new File(p).getParent(), "res.sql").toPath(), newSqlText.getBytes());
             
             System.out.println("耗費時間:" + (System.currentTimeMillis() - l) + "ms");
         } catch (Exception e) {
