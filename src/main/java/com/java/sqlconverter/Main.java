@@ -35,7 +35,7 @@ public class Main {
 //            if (!isArgParse) {
 //                return;
 //            }
-            String p = "/home/mark/Desktop/sqlConverter/src/main/resources/test3.sql";
+            String p = "/home/mark/Desktop/sqlConverter/src/main/resources/test2.sql";
             String sqlText = FileUtil.readFile(p);
 //            String sqlText =
 //                    "--@pk:OID\n" +

@@ -102,6 +102,6 @@ public final class SQLUtil {
     }
     
     public static String removeUpsertComments(String sqlText) {
-        return sqlText.replaceAll("--@\\s*upsert\\s*:.*?\\s*?\n", "\n");
+        return sqlText.replaceAll("--@\\s*upsert\\s*:.*?\\s*?\n", "\r\n");
     }
 }

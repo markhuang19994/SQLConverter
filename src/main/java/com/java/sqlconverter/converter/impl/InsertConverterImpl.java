@@ -18,30 +18,30 @@ import java.util.stream.Collectors;
  */
 public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.InsertAndUpdateConverterImpl {
     
-    private static final String UPDATE_SQL_TEMPLATE = "UPDATE {tableName} SET {colKeyVal} {limitedCondition};";
-    private static final String INSERT_SQL_TEMPLATE = "INSERT INTO {tableName} ({keys}) VALUES ({values});";
+    private static final String UPDATE_SQL_TEMPLATE = "UPDATE {tableName} SET {colKeyVal} {limitedCondition}";
+    private static final String INSERT_SQL_TEMPLATE = "INSERT INTO {tableName} ({keys}) VALUES ({values})";
     private static final String UPSERT_TEMPLATE     = "{updateSql}\nIF @@ROWCOUNT=0\n\t{insert}";
     
     public InsertConverterImpl(SQLDetails sqlDetails) {
         this.sqlDetails = sqlDetails;
     }
-    
-    private String convert2Update() {
-        String newSqlFileText = this.sqlDetails.getSqlFileText();
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n");
-        for (String sqlText : this.sqlDetails.getUpsertTextBlocks()) {
-            List<InsertModel> insertModels = parseInsert(sqlText);
-            for (InsertModel insertModel : insertModels) {
-                String temp = genUpdateStatement(insertModel);
-                sb.append(temp).append("\n");
-            }
-            int len = sb.length();
-            sb.delete(len - 1, len);
-            newSqlFileText = newSqlFileText.replace(sqlText, sb.toString());
-        }
-        return newSqlFileText;
-    }
+
+//    private String convert2Update() {
+//        String newSqlFileText = this.sqlDetails.getSqlFileText();
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("\n");
+//        for (String sqlText : this.sqlDetails.getUpsertTextBlocks()) {
+//            List<InsertModel> insertModels = parseInsert(sqlText);
+//            for (InsertModel insertModel : insertModels) {
+//                String temp = genUpdateStatement(insertModel);
+//                sb.append(temp).append("\n");
+//            }
+//            int len = sb.length();
+//            sb.delete(len - 1, len);
+//            newSqlFileText = newSqlFileText.replace(sqlText, sb.toString());
+//        }
+//        return newSqlFileText;
+//    }
     
     /**
      * 將sql檔案有包含在upsert:on與upsert:off之間的insert轉換成update + insert
@@ -51,16 +51,18 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
     @Override
     public String convert2Upsert() {
         String newSqlFileText = this.sqlDetails.getSqlFileText();
-        final List<String> upsertTextBlocks = this.sqlDetails.getUpsertTextBlocks();
-        for (String sqlText : upsertTextBlocks) {
-            List<InsertModel> insertModels = parseInsert(sqlText);
-            final StringBuilder upsertSb = new StringBuilder("\r\n");
+        final List<String> upsertTextBlocks = this.sqlDetails.getUpsertBlocks();
+        for (int i = 1; i <= upsertTextBlocks.size(); i++) {
+            final String sqlText = upsertTextBlocks.get(i - 1);
+            final List<InsertModel> insertModels = parseInsert(sqlText, i);
+            final StringBuilder upsertSb = new StringBuilder();
             for (InsertModel insertModel : insertModels) {
+                checkKeyValueLength(insertModel);
                 String updateSql = genUpdateStatement(insertModel);
                 String uTemplate = UPSERT_TEMPLATE;
                 uTemplate = uTemplate.replace("{updateSql}", updateSql);
-                uTemplate = uTemplate.replace("{insert}", genInsertStatement(insertModel));
-                upsertSb.append(uTemplate).append("\r\n");
+                uTemplate = uTemplate.replace("{insert}", genInsertStatement(insertModel) + ";");
+                upsertSb.append(uTemplate).append("\r\n\r\n");
             }
             newSqlFileText = newSqlFileText.replace(sqlText, upsertSb.toString());
             upsertSb.setLength(0);
@@ -68,28 +70,22 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
         return newSqlFileText;
     }
     
-    private String genUpdateStatement(InsertModel sql) {
-        String temp;
-        String insertSql = sql.sqlStr;
-        String tableName = sql.tableName;
-        String[] keys = sql.keys;
-        String[] vals = sql.vals;
-        checkKeyValueLength(insertSql, keys, vals);
-        temp = UPDATE_SQL_TEMPLATE;
+    private String genUpdateStatement(InsertModel insertModel) {
+        String tableName = insertModel.tableName;
+        String[] keys = insertModel.keys;
+        String[] vals = insertModel.vals;
+        String temp = UPDATE_SQL_TEMPLATE;
         temp = temp.replace("{tableName}", tableName);
         temp = temp.replace("{colKeyVal}", generateColumnKeyVal(keys, vals));
-        temp = temp.replace("{limitedCondition}", checkAndGeneratePrimaryKeyVal(insertSql, keys, vals));
+        temp = temp.replace("{limitedCondition}", checkAndGeneratePrimaryKeyVal(insertModel));
         return temp;
     }
     
     private String genInsertStatement(InsertModel sql) {
-        String temp;
-        String insertSql = sql.sqlStr;
         String tableName = sql.tableName;
         String[] keys = sql.keys;
         String[] vals = sql.vals;
-        checkKeyValueLength(insertSql, keys, vals);
-        temp = INSERT_SQL_TEMPLATE;
+        String temp = INSERT_SQL_TEMPLATE;
         temp = temp.replace("{tableName}", tableName);
         temp = temp.replace("{keys}", String.join(", ", keys));
         temp = temp.replace("{values}", String.join(", ", vals));
@@ -105,7 +101,10 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
         return sb.toString();
     }
     
-    private String checkAndGeneratePrimaryKeyVal(String insertSql, String[] keys, String[] vals) {
+    private String checkAndGeneratePrimaryKeyVal(InsertModel insertModel) {
+        String insertSql = insertModel.sqlStr;
+        String[] keys = insertModel.keys;
+        String[] vals = insertModel.vals;
         StringBuilder sb = new StringBuilder();
         String limitKey = "WHERE";
         List<String> pks = this.sqlDetails.getPrimaryKeys();
@@ -122,15 +121,23 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
             return sb.toString();
         }
         throw new IllegalArgumentException(
-                String.format("Insert sqlDetails:%s , 未包含主鍵:%s",
-                        StringUtil.abbreviateString(insertSql, 100), pks)
+                String.format("at upsert:%s,line:%s >> %s , 未包含主鍵:%s",
+                        insertModel.atBlock,
+                        insertModel.atLine,
+                        StringUtil.abbreviateString(insertSql, 100), pks
+                )
         );
     }
     
-    private void checkKeyValueLength(String insertSql, String[] keys, String[] vals) {
+    private void checkKeyValueLength(InsertModel insertModel) {
+        String insertSql = insertModel.sqlStr;
+        String[] keys = insertModel.keys;
+        String[] vals = insertModel.vals;
         if (keys.length != vals.length) {
             throw new IllegalArgumentException(
-                    String.format("Insert sqlDetails:%s ,key的長度不等於value的長度, key:%s, value:%s",
+                    String.format("at upsert:%s,line:%s >> %s ,key的長度不等於value的長度, key:%s, value:%s",
+                            insertModel.atBlock,
+                            insertModel.atLine,
                             StringUtil.abbreviateString(insertSql, 500),
                             Arrays.asList(StringUtil.abbreviateString(keys, 100)),
                             Arrays.asList(StringUtil.abbreviateString(vals, 100)))
@@ -147,21 +154,27 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
      * @param sql sqlText
      * @return List<InsertModel>
      */
-    private List<InsertModel> parseInsert(String sql) {
-        final List<String> insertList = new ArrayList<>();
+    private List<InsertModel> parseInsert(String sql, int atBlock) {
+        final List<InsertStmt> insertList = new ArrayList<>();
         final StringBuilder sb = new StringBuilder();
         
         String topRemain = "";
         boolean isFirst = true;
-        for (String line : sql.split("\n")) {
-            if (line.matches("^(?i)insert[\\s\\S]*$")) {
+        
+        final String[] lines = sql.split("\n");
+        int currentInsertStartLine = -1;
+        for (int i = 1; i <= lines.length; i++) {
+            final String line = lines[i - 1];
+            
+            if (line.matches("^(?i)insert.*$")) {
+                currentInsertStartLine = i;
                 if (sb.length() > 0) {
                     final String str = sb.toString();
                     if (isFirst) {
                         topRemain = str;
                         isFirst = false;
                     } else {
-                        insertList.add(str);
+                        insertList.add(new InsertStmt(str, currentInsertStartLine));
                     }
                     sb.setLength(0);
                 }
@@ -171,7 +184,7 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
         }
         
         if (sb.length() > 0) {
-            insertList.add(sb.toString());
+            insertList.add(new InsertStmt(sb.toString(), currentInsertStartLine));
             sb.setLength(0);
         }
         
@@ -183,8 +196,9 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
         final List<InsertModel> insertModels = new ArrayList<>();
         final StringBuilder insertSb = new StringBuilder();
         
-        for (String insertStmt : insertList) {
-            insertStmt = SQLUtil.replaceStatementSensitiveWord(insertStmt);
+        for (InsertStmt insertStmt : insertList) {
+            String stmt = insertStmt.stmt;
+            stmt = SQLUtil.replaceStatementSensitiveWord(stmt);
             insertSb.setLength(0);
             String tableName;
             String[] keys;
@@ -192,87 +206,86 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
             
             int idx;
             
-            idx = insertStmt.toLowerCase().indexOf("insert");
+            idx = stmt.toLowerCase().indexOf("insert");
             if (idx == -1) {
-                errorMsg.add("parse error, insert key word not found:" + insertStmt);
+                errorMsg.add("parse error, insert key word not found:" + stmt);
                 continue;
             } else {
                 idx = idx + "insert".length();
-                insertSb.append(insertStmt, 0, idx);
-                insertStmt = insertStmt.substring(idx);
+                insertSb.append(stmt, 0, idx);
+                stmt = stmt.substring(idx);
             }
             
-            idx = insertStmt.toLowerCase().indexOf("into");
+            idx = stmt.toLowerCase().indexOf("into");
             if (idx != -1) {
                 idx = idx + "into".length();
-                insertSb.append(insertStmt, 0, idx);
-                insertStmt = insertStmt.substring(idx);
+                insertSb.append(stmt, 0, idx);
+                stmt = stmt.substring(idx);
             }
             
-            idx = insertStmt.toLowerCase().indexOf("(");
+            idx = stmt.toLowerCase().indexOf("(");
             if (idx == -1) {
-                errorMsg.add("parse error, keys left ( not found:" + insertStmt);
+                errorMsg.add("parse error, keys left ( not found:" + stmt);
                 continue;
             } else {
-                tableName = removeBrackets(insertStmt.substring(0, idx).trim());
+                tableName = removeBrackets(stmt.substring(0, idx).trim());
                 idx = idx + "(".length();
-                insertSb.append(insertStmt, 0, idx);
-                insertStmt = insertStmt.substring(idx);
+                insertSb.append(stmt, 0, idx);
+                stmt = stmt.substring(idx);
             }
             
-            idx = insertStmt.toLowerCase().indexOf(")");
+            idx = stmt.toLowerCase().indexOf(")");
             if (idx == -1) {
-                errorMsg.add("parse error, keys right ) not found:" + insertStmt);
+                errorMsg.add("parse error, keys right ) not found:" + stmt);
                 continue;
             } else {
-                final String keysStr = insertStmt.substring(0, idx).trim();
+                final String keysStr = stmt.substring(0, idx).trim();
                 keys = Arrays.stream(keysStr.split(","))
                              .map(String::trim)
                              .map(this::removeBrackets).collect(Collectors.toList()).toArray(String[]::new);
                 idx = idx + ")".length();
-                insertSb.append(insertStmt, 0, idx);
-                insertStmt = insertStmt.substring(idx);
+                insertSb.append(stmt, 0, idx);
+                stmt = stmt.substring(idx);
             }
             
-            idx = insertStmt.toLowerCase().indexOf("values");
+            idx = stmt.toLowerCase().indexOf("values");
             if (idx == -1) {
-                errorMsg.add("parse error, values key word not found:" + insertStmt);
+                errorMsg.add("parse error, values key word not found:" + stmt);
                 continue;
             } else {
                 idx = idx + "values".length();
-                insertSb.append(insertStmt, 0, idx);
-                insertStmt = insertStmt.substring(idx);
+                insertSb.append(stmt, 0, idx);
+                stmt = stmt.substring(idx);
             }
             
-            idx = insertStmt.toLowerCase().indexOf("(");
+            idx = stmt.toLowerCase().indexOf("(");
             if (idx == -1) {
-                errorMsg.add("parse error, values left ( not found:" + insertStmt);
+                errorMsg.add("parse error, values left ( not found:" + stmt);
                 continue;
             } else {
                 idx = idx + "(".length();
-                insertSb.append(insertStmt, 0, idx);
-                insertStmt = insertStmt.substring(idx);
+                insertSb.append(stmt, 0, idx);
+                stmt = stmt.substring(idx);
             }
             
-            idx = insertStmt.toLowerCase().indexOf(")");
+            idx = stmt.toLowerCase().indexOf(")");
             if (idx == -1) {
-                errorMsg.add("parse error, values right ) not found:" + insertStmt);
+                errorMsg.add("parse error, values right ) not found:" + stmt);
                 continue;
             } else {
-                final String valuesStr = insertStmt.substring(0, idx).trim();
+                final String valuesStr = stmt.substring(0, idx).trim();
                 values = Arrays.stream(valuesStr.split(","))
                                .map(String::trim)
                                .map(this::removeBrackets).collect(Collectors.toList()).toArray(String[]::new);
                 idx = idx + ")".length();
-                insertSb.append(insertStmt, 0, idx);
+                insertSb.append(stmt, 0, idx);
             }
-            final String upsertStmt = insertSb.toString() + ";";
-            final String convertedUpsertStmt = SQLUtil.recoverStatementSensitiveWord(upsertStmt);
-            final String remain = insertStmt.substring(idx);
+            final String cleanInsertStmt = SQLUtil.recoverStatementSensitiveWord(insertSb.toString());
+            final String remain = stmt.substring(idx);
             if (remain.length() > 0 && !remain.equals(";\n")) {
 //                System.out.println("skip remain:" + remain);
             }
-            insertModels.add(new InsertModel(convertedUpsertStmt, tableName, keys, values));
+            insertModels.add(new InsertModel(cleanInsertStmt, atBlock, insertStmt.atLine, tableName, keys, values));
         }
         
         if (errorMsg.size() > 0) {
@@ -282,20 +295,39 @@ public class InsertConverterImpl extends com.java.sqlconverter.converter.impl.In
     }
     
     private String removeBrackets(String str) {
-        if (str.matches("^\\[[\\s\\S]*]$")) {
-            return str.substring(1, str.length() - 1);
+        final List<String> l = new ArrayList<>();
+        for (String s : str.split("\\.")) {
+            if (s.matches("^\\[[\\s\\S]*]$")) {
+                l.add(s.substring(1, s.length() - 1));
+            } else {
+                l.add(s);
+            }
         }
-        return str;
+        return String.join(".", l);
+    }
+    
+    private static class InsertStmt {
+        private final String stmt;
+        private final int    atLine;
+        
+        private InsertStmt(String stmt, int atLine) {
+            this.stmt = stmt;
+            this.atLine = atLine;
+        }
     }
     
     private static class InsertModel {
         private final String   sqlStr;
+        private final int      atBlock;
+        private final int      atLine;
         private final String   tableName;
         private final String[] keys;
         private final String[] vals;
         
-        InsertModel(String sqlStr, String tableName, String[] keys, String[] vals) {
+        InsertModel(String sqlStr, int atBlock, int atLine, String tableName, String[] keys, String[] vals) {
             this.sqlStr = sqlStr;
+            this.atBlock = atBlock;
+            this.atLine = atLine;
             this.tableName = tableName;
             this.keys = keys;
             this.vals = vals;
