@@ -250,7 +250,7 @@ public class InsertConverter {
                 stmt = stmt.substring(idx);
             }
             
-            idx = stmt.toLowerCase().indexOf(")");
+            idx = lastPareBracketIndex("(" + stmt) -1;
             if (idx == -1) {
                 errorMsg.add("parse error, values right ) not found:" + stmt);
                 continue;
@@ -262,7 +262,6 @@ public class InsertConverter {
                 idx = idx + ")".length();
                 insertSb.append(stmt, 0, idx);
             }
-            final String cleanInsertStmt = SQLUtil.recoverStatementSensitiveWord(insertSb.toString());
             final String remain = stmt.substring(idx);
             if (remain.length() > 0 && !remain.equals(";\n")) {
 //                System.out.println("skip remain:" + remain);
@@ -286,6 +285,23 @@ public class InsertConverter {
             }
         }
         return String.join(".", l);
+    }
+    
+    private int lastPareBracketIndex(String str) {
+        final char[] chars = str.toCharArray();
+        int x = 0;
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c == '(') {
+              x++;
+            } else if (c == ')') {
+                x--;
+                if (x == 0) {
+                    return i;
+                }
+            }
+        }
+        throw new RuntimeException();
     }
     
     private static class InsertStmt {

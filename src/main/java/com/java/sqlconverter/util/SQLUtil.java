@@ -21,7 +21,8 @@ public final class SQLUtil {
     static {
         INSERT_SENSITIVE_WORDS_CONVERT_MAP = new HashMap<>();
         INSERT_SENSITIVE_WORDS_CONVERT_MAP.put(",", "#$#01#$#");
-        INSERT_SENSITIVE_WORDS_CONVERT_MAP.put(")", "#$#02#$#");
+        INSERT_SENSITIVE_WORDS_CONVERT_MAP.put("(", "#$#02#$#");
+        INSERT_SENSITIVE_WORDS_CONVERT_MAP.put(")", "#$#03#$#");
     }
     
     public static String replaceStatementSensitiveWord(String insertSql) {
