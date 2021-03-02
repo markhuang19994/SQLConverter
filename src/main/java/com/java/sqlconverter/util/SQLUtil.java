@@ -1,8 +1,8 @@
 package com.java.sqlconverter.util;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author MarkHuang
@@ -67,7 +67,16 @@ public final class SQLUtil {
             nowIndex = wordIndex + 1;
         }
         sb.append(insertSql.substring(nowIndex));
-        return sb.toString();
+    
+        String resultStr = sb.toString();
+    
+        final Pattern p  = Pattern.compile("(REPLACE\\s*\\(.*\\)).*?\\)");
+        final Matcher matcher = p.matcher(resultStr);
+        if (matcher.find()) {
+            final String matchStr = matcher.group(1);
+            throw new RuntimeException(String.format("不支援函式宣告:%s，因為不能重複跑", matchStr));
+        }
+        return resultStr;
     }
     
     /**
