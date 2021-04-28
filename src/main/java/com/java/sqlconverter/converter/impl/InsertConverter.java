@@ -7,6 +7,8 @@ import com.java.sqlconverter.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -180,7 +182,6 @@ public class InsertConverter {
         
         for (InsertStmt insertStmt : insertList) {
             String stmt = insertStmt.stmt;
-            stmt = SQLUtil.replaceStatementSensitiveWord(stmt);
             insertSb.setLength(0);
             String tableName;
             String[] keys;
@@ -250,13 +251,13 @@ public class InsertConverter {
                 stmt = stmt.substring(idx);
             }
             
-            idx = lastPareBracketIndex("(" + stmt) -1;
+            idx = lastPareBracketIndex("(" + stmt) - 1;
             if (idx == -1) {
                 errorMsg.add("parse error, values right ) not found:" + stmt);
                 continue;
             } else {
-                final String valuesStr = stmt.substring(0, idx).trim();
-                values = Arrays.stream(valuesStr.split(","))
+                final String insertStr = stmt.substring(0, idx).trim();
+                values = Arrays.stream(insertStr.split(","))
                                .map(String::trim)
                                .map(this::removeBrackets).collect(Collectors.toList()).toArray(String[]::new);
                 idx = idx + ")".length();
@@ -293,7 +294,7 @@ public class InsertConverter {
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
             if (c == '(') {
-              x++;
+                x++;
             } else if (c == ')') {
                 x--;
                 if (x == 0) {

@@ -42,4 +42,39 @@ public final class StringUtil {
         }
         return false;
     }
+    
+    public static int indexOfIgnoreCase(final String haystack,
+                                        final String needle) {
+        if (needle.isEmpty() || haystack.isEmpty()) {
+            // Fallback to legacy behavior.
+            return haystack.indexOf(needle);
+        }
+        
+        for (int i = 0; i < haystack.length(); ++i) {
+            // Early out, if possible.
+            if (i + needle.length() > haystack.length()) {
+                return -1;
+            }
+            
+            // Attempt to match substring starting at position i of haystack.
+            int j = 0;
+            int ii = i;
+            while (ii < haystack.length() && j < needle.length()) {
+                char c = Character.toLowerCase(haystack.charAt(ii));
+                char c2 = Character.toLowerCase(needle.charAt(j));
+                if (c != c2) {
+                    break;
+                }
+                j++;
+                ii++;
+            }
+            // Walked all the way to the end of the needle, return the start
+            // position that this was found.
+            if (j == needle.length()) {
+                return i;
+            }
+        }
+        
+        return -1;
+    }
 }
