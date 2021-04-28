@@ -25,7 +25,6 @@ public class Main {
             SQLDetail sqlDetail = new SQLDetail(sqlText);
             //2.將insert轉換成update + insert (upsert)
             String newSqlText = new InsertConverter(sqlDetail).convert2Upsert();
-//            newSqlText = SQLUtil.recoverStatementSensitiveWord(newSqlText);
             newSqlText = SQLUtil.removeUpsertComments(newSqlText);
             Files.write(new File(new File(p).getParent(), "res.sql").toPath(), newSqlText.getBytes());
     

@@ -257,9 +257,7 @@ public class InsertConverter {
                 continue;
             } else {
                 final String insertStr = stmt.substring(0, idx).trim();
-                values = Arrays.stream(insertStr.split(","))
-                               .map(String::trim)
-                               .map(this::removeBrackets).collect(Collectors.toList()).toArray(String[]::new);
+                values =SQLUtil.parseParamInSentence(insertStr).paramList.toArray(String[]::new);
                 idx = idx + ")".length();
                 insertSb.append(stmt, 0, idx);
             }

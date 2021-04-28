@@ -2,6 +2,8 @@ package com.java.sqlconverter.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author MarkHuang
@@ -20,12 +22,6 @@ public final class SQLUtil {
     }
     
     public static Result parseParamInSentence(String sentence) {
-        if (sentence.indexOf("(") != 0) {
-            throw new RuntimeException("sentence first index must be '(' but is :" + sentence);
-        }
-    
-        sentence = sentence.substring(1);
-        
         final List<String> paramList = new ArrayList<>();
         
         final StringBuilder tempSb = new StringBuilder();
@@ -34,7 +30,7 @@ public final class SQLUtil {
         boolean isInQuotation = false;
         int pareParentheses = 0;
         boolean isEscape = false;
-    
+        
         int idx = 0;
         for (; idx < charArray.length; idx++) {
             if (isEscape) {
@@ -43,6 +39,7 @@ public final class SQLUtil {
             }
             
             final char c = charArray[idx];
+            tempSb.append(c);
             
             switch (c) {
                 //如果遇到單引號，代表字串開始
@@ -53,10 +50,6 @@ public final class SQLUtil {
                         if (idx + 1 < charArray.length && charArray[idx + 1] == '\'') {
                             isEscape = true;
                         } else { //如果下一個字元不是單引號，代表這個單引號一定是字串結尾
-                            if (pareParentheses != 0) {
-                                paramList.add(tempSb.toString());
-                                tempSb.setLength(0);
-                            }
                             isInQuotation = false;
                         }
                     } else {
@@ -71,36 +64,35 @@ public final class SQLUtil {
                     if (!isInQuotation) {
                         pareParentheses++;
                     }
-                    tempSb.append(c);
                     break;
                 case ')':
                     //如果在字串外面遇到右括號，就預期是一對括號的結束
                     if (!isInQuotation) {
                         pareParentheses--;
-                        //如果括號都結束了，代表這是一個函數之類的東西，像是:
-                        //insert into ... value (func(cast(), ()), '', '')的func函數
-                        //所以預期當前暫存的值是insert的一個項目，放入insertList
-                        if (pareParentheses == 0) {
-                            paramList.add(tempSb.toString());
-                            tempSb.setLength(0);
-                        } else if (pareParentheses == -1) {
+                        if (pareParentheses == -1) {
                             break;
                         }
                     }
-                    tempSb.append(c);
                     break;
-                default:
-                    tempSb.append(c);
+                case ',':
+                    //如果遇到逗號，且當前狀態不在單引號或括號裡面，那在遇到逗號前儲存的字串(tempSb)一定是參數
+                    if (pareParentheses == 0 && !isInQuotation) {
+                        paramList.add(tempSb.substring(0, tempSb.length() -1));
+                        tempSb.setLength(0);
+                    }
+                    break;
             }
         }
-        
+    
+        paramList.add(tempSb.toString());
+    
         return new Result(paramList, idx);
     }
     
     public static class Result {
         public final List<String> paramList;
-        public final int lastIndex;
-    
+        public final int          lastIndex;
+        
         private Result(List<String> paramList, int lastIndex) {
             this.paramList = paramList;
             this.lastIndex = lastIndex;
