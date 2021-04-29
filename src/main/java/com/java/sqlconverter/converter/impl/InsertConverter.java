@@ -251,9 +251,10 @@ public class InsertConverter {
                 stmt = stmt.substring(idx);
             }
             
-            idx = lastPareBracketIndex("(" + stmt) - 1;
+            //todo gg
+            idx = stmt.lastIndexOf(")");
             if (idx == -1) {
-                errorMsg.add("parse error, values right ) not found:" + stmt);
+                errorMsg.add("parse error, values left ( not found:" + stmt);
                 continue;
             } else {
                 final String insertStr = stmt.substring(0, idx).trim();

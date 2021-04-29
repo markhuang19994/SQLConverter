@@ -33,13 +33,13 @@ public final class SQLUtil {
         
         int idx = 0;
         for (; idx < charArray.length; idx++) {
+            final char c = charArray[idx];
+            tempSb.append(c);
+    
             if (isEscape) {
                 isEscape = false;
                 continue;
             }
-            
-            final char c = charArray[idx];
-            tempSb.append(c);
             
             switch (c) {
                 //如果遇到單引號，代表字串開始
