@@ -58,6 +58,7 @@ class InsertConverterTest {
         final InsertConverter insertConverter = new InsertConverter(new SQLDetail(sql));
         final String result = insertConverter.convert2Upsert();
         Assertions.assertEquals(answer, trimCommentAndEmptyLine(result));
+        System.out.println(result);
     }
     
     private String trimCommentAndEmptyLine(String sql) {

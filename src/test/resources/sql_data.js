@@ -66,7 +66,7 @@ const data = [
 
     testData(
         'x',
-        'INSERT INTO dbo.abc (x , y , z) VALUES (1, function(func(\'a\'\',b,\nc,\')), 3)'
+        `INSERT INTO dbo.abc (x , y , z) VALUES (1, function(func('a'',b,\nc,')), 3)`
         ,
         `
             |UPDATE dbo.abc SET y =  function(func('a'',b,\nc,')), z =  3  WHERE x = 1
@@ -76,6 +76,42 @@ const data = [
         'value是函數且含有敏感字符'
     ),
 
+    testData(
+        'x',
+        `
+            |select * from abc;
+            |GO
+            |INSERT INTO dbo.abc (x , y , z) VALUES (1, 2, 3)
+        `
+        ,
+        `
+            |select * from abc;
+            |GO
+            |UPDATE dbo.abc SET y =  2, z =  3  WHERE x = 1
+            |IF @@ROWCOUNT=0
+            |\tINSERT INTO dbo.abc (x, y, z) VALUES (1,  2,  3);
+        `,
+        'insert上方有其他語句'
+    ),
+
+
+    testData(
+        'x',
+        `
+            |INSERT INTO dbo.abc (x , y , z) VALUES (1, 2, 3)
+            |GO
+            |select * from efg;
+        `
+        ,
+        `
+            |UPDATE dbo.abc SET y =  2, z =  3  WHERE x = 1
+            |IF @@ROWCOUNT=0
+            |\tINSERT INTO dbo.abc (x, y, z) VALUES (1,  2,  3);
+            |GO
+            |select * from efg;
+        `,
+        'insert下方有其他語句'
+    ),
 
     testData(
         'x',

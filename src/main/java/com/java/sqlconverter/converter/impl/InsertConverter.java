@@ -34,13 +34,13 @@ public class InsertConverter {
      * @return 新的sql檔內容
      */
     public String convert2Upsert() {
-        String newSqlFileText = this.sqlDetail.getSqlFileText();
+        String fileText = this.sqlDetail.getSqlFileText();
         final List<String> upsertTextBlocks = this.sqlDetail.getUpsertBlocks();
         for (int i = 1; i <= upsertTextBlocks.size(); i++) {
             final String sqlText = upsertTextBlocks.get(i - 1);
-            final List<InsertModel> insertModels = parseInsert(sqlText, i);
+            final ParseInsertResult parseInsertResult = parseInsert(sqlText, i);
             final StringBuilder upsertSb = new StringBuilder();
-            for (InsertModel insertModel : insertModels) {
+            for (InsertModel insertModel : parseInsertResult.insertModels) {
                 checkKeyValueLength(insertModel);
                 String updateSql = genUpdateStatement(insertModel);
                 String uTemplate = UPSERT_TEMPLATE;
@@ -53,10 +53,15 @@ public class InsertConverter {
 
                 upsertSb.append(uTemplate).append("\r\n").append(remain).append("\r\n");
             }
-            newSqlFileText = newSqlFileText.replace(sqlText, upsertSb.toString());
+            
+            String newUpsertBlock = upsertSb.toString();
+            if (!parseInsertResult.topRemain.isEmpty()) {
+                newUpsertBlock = parseInsertResult.topRemain + "\n" + newUpsertBlock;
+            }
+            fileText = fileText.replace(sqlText, newUpsertBlock);
             upsertSb.setLength(0);
         }
-        return newSqlFileText;
+        return fileText;
     }
     
     private String genUpdateStatement(InsertModel insertModel) {
@@ -146,11 +151,11 @@ public class InsertConverter {
      * @param sql sqlText
      * @return List<InsertModel>
      */
-    private List<InsertModel> parseInsert(String sql, int atBlock) {
+    private ParseInsertResult parseInsert(String sql, int atBlock) {
         final List<InsertStmt> insertList = new ArrayList<>();
         final StringBuilder sb = new StringBuilder();
         
-        String topRemain = "";
+        String topRemain = null;
         boolean isFirst = true;
         
         final String[] lines = sql.split("\n");
@@ -178,8 +183,8 @@ public class InsertConverter {
             sb.setLength(0);
         }
         
-        if (topRemain.length() > 0 && !topRemain.equals("\n")) {
-//            System.out.println("skip top remain:" + topRemain);
+        if (topRemain == null || topRemain.trim().length() == 0) {
+            topRemain = "";
         }
         
         final List<String> errorMsg = new ArrayList<>();
@@ -278,7 +283,7 @@ public class InsertConverter {
         if (errorMsg.size() > 0) {
             throw new RuntimeException(String.join("\n", errorMsg));
         }
-        return insertModels;
+        return new ParseInsertResult(topRemain, insertModels);
     }
     
     private String removeBrackets(String str) {
@@ -293,23 +298,6 @@ public class InsertConverter {
         return String.join(".", l);
     }
     
-    private int lastPareBracketIndex(String str) {
-        final char[] chars = str.toCharArray();
-        int x = 0;
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-            if (c == '(') {
-                x++;
-            } else if (c == ')') {
-                x--;
-                if (x == 0) {
-                    return i;
-                }
-            }
-        }
-        throw new RuntimeException();
-    }
-    
     private static class InsertStmt {
         private final String stmt;
         private final int    atLine;
@@ -317,6 +305,16 @@ public class InsertConverter {
         private InsertStmt(String stmt, int atLine) {
             this.stmt = stmt;
             this.atLine = atLine;
+        }
+    }
+    
+    private static class ParseInsertResult {
+        private final String topRemain;
+        private final List<InsertModel> insertModels;
+    
+        private ParseInsertResult(String topRemain, List<InsertModel> insertModels) {
+            this.topRemain = topRemain;
+            this.insertModels = insertModels;
         }
     }
     
@@ -329,7 +327,7 @@ public class InsertConverter {
         private final String[] vals;
         private final String   remain;
         
-        InsertModel(String sqlStr, int atBlock, int atLine, String tableName, String[] keys, String[] vals, String remain) {
+        private InsertModel(String sqlStr, int atBlock, int atLine, String tableName, String[] keys, String[] vals, String remain) {
             this.sqlStr = sqlStr;
             this.atBlock = atBlock;
             this.atLine = atLine;
