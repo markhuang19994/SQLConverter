@@ -31,7 +31,6 @@ class InsertConverterTest {
         exec.waitFor();
         final Map map = new ObjectMapper().readValue(new String(readAndCloseInputStream(exec.getInputStream())), Map.class);
         
-        final Object pk = map.get("pk");
         final List data = (List) map.get("data");
         
         final List<Arguments> arguments = new ArrayList<>();
@@ -58,7 +57,6 @@ class InsertConverterTest {
         final InsertConverter insertConverter = new InsertConverter(new SQLDetail(sql));
         final String result = insertConverter.convert2Upsert();
         Assertions.assertEquals(answer, trimCommentAndEmptyLine(result));
-        System.out.println(result);
     }
     
     private String trimCommentAndEmptyLine(String sql) {
