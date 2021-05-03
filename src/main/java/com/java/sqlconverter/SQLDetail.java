@@ -25,7 +25,7 @@ public class SQLDetail {
     }
     
     private List<String> getPrimaryKeys(String sqlFileText) {
-        Pattern p = Pattern.compile("--@\\s*pk\\s*:\\s*(.*?)\\s");
+        Pattern p = Pattern.compile("--@pk:[ \t]*(.*)[ \t]*");
         Matcher m = p.matcher(sqlFileText);
         if (m.find()) {
             return Arrays.asList(m.group(1).split(","));
@@ -41,13 +41,13 @@ public class SQLDetail {
         int lastUpsertOnIndex = -1;
         for (int i = 1; i <= split.length; i++) {
             final String line = split[i - 1];
-            if (line.matches("^--@\\s*upsert\\s*:\\s*on")) {
+            if (line.matches("^--@upsert:on[ \t]*")) {
                 if (inUpsertBlock) {
                     throw new RuntimeException(String.format("find @upsert:on in @upsert:on, at line:%s and line:%s", lastUpsertOnIndex, i));
                 }
                 lastUpsertOnIndex = i;
                 inUpsertBlock = true;
-            } else if (line.matches("^--@\\s*upsert\\s*:\\s*off")) {
+            } else if (line.matches("^--@upsert:off[ \t]*")) {
                 if (!inUpsertBlock) {
                     throw new RuntimeException("@upsert:on is not declare, bu find @upsert:off at line:" + i);
                 }
