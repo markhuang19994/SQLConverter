@@ -7,7 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +29,7 @@ class InsertConverterTest {
         final File sqlDir = new File(resource.getPath()).getParentFile();
         final Process exec = Runtime.getRuntime().exec("node sql_data.js", null, sqlDir);
         exec.waitFor();
-        final Map map = new ObjectMapper().readValue(new String(exec.getInputStream().readAllBytes()), Map.class);
+        final Map map = new ObjectMapper().readValue(new String(readAndCloseInputStream(exec.getInputStream())), Map.class);
         
         final Object pk = map.get("pk");
         final List data = (List) map.get("data");
@@ -50,7 +50,7 @@ class InsertConverterTest {
         return arguments.stream();
     }
     
-    @ParameterizedTest(name="#{index}-{3}")
+    @ParameterizedTest(name = "#{index}-{3}")
     @MethodSource("testSqlProvider")
     void convertUpsert(String pk, String question, String answer, String desc) {
         final String sql = "--@pk:" + pk + "\n" +
@@ -58,13 +58,24 @@ class InsertConverterTest {
         final InsertConverter insertConverter = new InsertConverter(new SQLDetail(sql));
         final String result = insertConverter.convert2Upsert();
         Assertions.assertEquals(answer, trimCommentAndEmptyLine(result));
-        System.out.println(result);
     }
     
     private String trimCommentAndEmptyLine(String sql) {
         return Arrays.stream(sql.split("\r?\n"))
                      .filter(l -> !l.startsWith("--") && !l.trim().isEmpty())
                      .collect(Collectors.joining("\n"));
+    }
+    
+    private static byte[] readAndCloseInputStream(InputStream ips) throws IOException {
+        try (BufferedInputStream bis = new BufferedInputStream(ips);
+             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            
+            byte[] buffer = new byte[2048];
+            for (int length; (length = bis.read(buffer)) != -1; ) {
+                bos.write(buffer, 0, length);
+            }
+            return bos.toByteArray();
+        }
     }
     
 }

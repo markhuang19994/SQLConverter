@@ -231,7 +231,7 @@ public class InsertConverter {
                 final String keysStr = stmt.substring(0, idx).trim();
                 keys = Arrays.stream(keysStr.split(","))
                              .map(String::trim)
-                             .map(this::removeBrackets).collect(Collectors.toList()).toArray(String[]::new);
+                             .map(this::removeBrackets).collect(Collectors.toList()).toArray(new String[]{});
                 idx = idx + ")".length();
                 insertSb.append(stmt, 0, idx);
                 stmt = stmt.substring(idx);
@@ -263,7 +263,7 @@ public class InsertConverter {
                 continue;
             } else {
                 final String insertStr = stmt.substring(0, idx).trim();
-                values = SQLUtil.parseParamInSentence(insertStr).paramList.toArray(String[]::new);
+                values = SQLUtil.parseParamInSentence(insertStr).paramList.toArray(new String[]{});
                 idx = idx + ")".length();
                 insertSb.append(stmt, 0, idx);
             }

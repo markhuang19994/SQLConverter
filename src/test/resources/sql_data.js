@@ -8,7 +8,7 @@ const data = [
             |IF @@ROWCOUNT=0
             |\tINSERT INTO dbo.abc (x, y, z) VALUES (1,  2,  3);
         `,
-        'Sql server 中括號寫法'
+        '中括號寫法'
     ),
 
 
