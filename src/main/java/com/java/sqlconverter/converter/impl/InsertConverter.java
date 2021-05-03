@@ -80,8 +80,11 @@ public class InsertConverter {
     
     private String generateColumnKeyVal(String[] keys, String[] vals) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < keys.length; i++)
+        final List<String> primaryKeys = this.sqlDetail.getPrimaryKeys();
+        for (int i = 0; i < keys.length; i++) {
+            if (primaryKeys.contains(keys[i])) continue;
             sb.append(keys[i]).append(" = ").append(vals[i]).append(", ");
+        }
         int len = sb.length();
         sb.delete(len - 2, len);
         return sb.toString();
@@ -258,7 +261,7 @@ public class InsertConverter {
                 continue;
             } else {
                 final String insertStr = stmt.substring(0, idx).trim();
-                values =SQLUtil.parseParamInSentence(insertStr).paramList.toArray(String[]::new);
+                values = SQLUtil.parseParamInSentence(insertStr).paramList.toArray(String[]::new);
                 idx = idx + ")".length();
                 insertSb.append(stmt, 0, idx);
             }
