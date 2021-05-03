@@ -7,8 +7,6 @@ import com.java.sqlconverter.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +46,12 @@ public class InsertConverter {
                 String uTemplate = UPSERT_TEMPLATE;
                 uTemplate = uTemplate.replace("{updateSql}", updateSql);
                 uTemplate = uTemplate.replace("{insert}", genInsertStatement(insertModel) + ";");
-                upsertSb.append(uTemplate).append("\r\n\r\n");
+    
+                String remain = insertModel.remain.startsWith("\n")
+                                ? insertModel.remain
+                                : "\n" + insertModel.remain;
+
+                upsertSb.append(uTemplate).append("\r\n").append(remain).append("\r\n");
             }
             newSqlFileText = newSqlFileText.replace(sqlText, upsertSb.toString());
             upsertSb.setLength(0);
@@ -254,7 +257,6 @@ public class InsertConverter {
                 stmt = stmt.substring(idx);
             }
             
-            //todo gg
             idx = stmt.lastIndexOf(")");
             if (idx == -1) {
                 errorMsg.add("parse error, values left ( not found:" + stmt);
@@ -265,11 +267,12 @@ public class InsertConverter {
                 idx = idx + ")".length();
                 insertSb.append(stmt, 0, idx);
             }
-            final String remain = stmt.substring(idx);
-            if (remain.length() > 0 && !remain.equals(";\n")) {
-//                System.out.println("skip remain:" + remain);
+            
+            String remain = stmt.substring(idx);
+            if (remain.length() == 0 || remain.matches("^;?\n$")) {
+                remain = "";
             }
-            insertModels.add(new InsertModel(insertSb.toString(), atBlock, insertStmt.atLine, tableName, keys, values));
+            insertModels.add(new InsertModel(insertSb.toString(), atBlock, insertStmt.atLine, tableName, keys, values, remain));
         }
         
         if (errorMsg.size() > 0) {
@@ -324,14 +327,16 @@ public class InsertConverter {
         private final String   tableName;
         private final String[] keys;
         private final String[] vals;
+        private final String   remain;
         
-        InsertModel(String sqlStr, int atBlock, int atLine, String tableName, String[] keys, String[] vals) {
+        InsertModel(String sqlStr, int atBlock, int atLine, String tableName, String[] keys, String[] vals, String remain) {
             this.sqlStr = sqlStr;
             this.atBlock = atBlock;
             this.atLine = atLine;
             this.tableName = tableName;
             this.keys = keys;
             this.vals = vals;
+            this.remain = remain;
         }
     }
 }
