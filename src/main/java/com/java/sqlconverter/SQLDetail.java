@@ -49,7 +49,7 @@ public class SQLDetail {
                 inUpsertBlock = true;
             } else if (line.matches("^--@upsert:off[ \t]*")) {
                 if (!inUpsertBlock) {
-                    throw new RuntimeException("@upsert:on is not declare, bu find @upsert:off at line:" + i);
+                    throw new RuntimeException("@upsert:on is not declare, but find @upsert:off at line:" + i);
                 }
                 upsertTextBlocks.add(sb.toString());
                 sb.setLength(0);

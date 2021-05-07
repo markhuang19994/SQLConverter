@@ -11,6 +11,34 @@ const data = [
         '中括號寫法'
     ),
 
+    testData(
+        'x',
+        'INSERT INTO [dbo].[abc]([x] , [y] , [z])VALUES(1, 2, 3)'
+        ,
+        `
+            |UPDATE dbo.abc SET y =  2, z =  3  WHERE x = 1
+            |IF @@ROWCOUNT=0
+            |\tINSERT INTO dbo.abc (x, y, z) VALUES (1,  2,  3);
+        `,
+        '連在一起'
+    ),
+
+
+    testData(
+        'x',
+        `
+            |INSERT INTO dbo.abc(x , [y
+            |] , z)VALUES(1, 2, 3)
+        `
+        ,
+        `
+            |UPDATE dbo.abc SET y =  2, z =  3  WHERE x = 1
+            |IF @@ROWCOUNT=0
+            |\tINSERT INTO dbo.abc (x, y, z) VALUES (1,  2,  3);
+        `,
+        '斷行'
+    ),
+
 
     testData(
         'x',

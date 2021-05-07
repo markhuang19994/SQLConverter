@@ -236,7 +236,10 @@ public class InsertConverter {
                 final String keysStr = stmt.substring(0, idx).trim();
                 keys = Arrays.stream(keysStr.split(","))
                              .map(String::trim)
-                             .map(this::removeBrackets).collect(Collectors.toList()).toArray(new String[]{});
+                             .map(this::removeBrackets)
+                             .map(String::trim)
+                             .collect(Collectors.toList())
+                             .toArray(new String[]{});
                 idx = idx + ")".length();
                 insertSb.append(stmt, 0, idx);
                 stmt = stmt.substring(idx);
