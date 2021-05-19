@@ -39,6 +39,9 @@ public class InsertConverter {
         for (int i = 1; i <= upsertTextBlocks.size(); i++) {
             final String sqlText = upsertTextBlocks.get(i - 1);
             final ParseInsertResult parseInsertResult = parseInsert(sqlText, i);
+            if (parseInsertResult == null) {
+                continue;
+            }
             final StringBuilder upsertSb = new StringBuilder();
             for (InsertModel insertModel : parseInsertResult.insertModels) {
                 checkKeyValueLength(insertModel);
@@ -177,13 +180,17 @@ public class InsertConverter {
             
             sb.append(line).append("\n");
         }
+    
+        if (currentInsertStartLine == -1) {
+            return null;
+        }
         
         if (sb.length() > 0) {
             insertList.add(new InsertStmt(sb.toString(), currentInsertStartLine));
             sb.setLength(0);
         }
         
-        if (topRemain == null || topRemain.trim().length() == 0) {
+        if (topRemain.trim().length() == 0) {
             topRemain = "";
         }
         

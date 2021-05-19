@@ -162,6 +162,17 @@ const data = [
         `,
         'insert語句之間含有其他語句'
     ),
+
+    testData(
+        'x',
+        `
+            |UPDATE dbo.abc set x= 1 where y = 2
+        `,
+        `
+            |UPDATE dbo.abc set x= 1 where y = 2
+        `,
+        '根本沒有insert語句'
+    )
 ];
 
 function testData(pk, question, answer, desc) {
