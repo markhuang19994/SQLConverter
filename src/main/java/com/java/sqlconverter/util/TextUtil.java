@@ -9,18 +9,10 @@ public class TextUtil {
     public static final String LINUX_SEPARATOR   = "\n";
     
     public static String toWindowsStyle(String text) {
-        return isWindowsStyle(text)
-               ? text
-               : text.replace(LINUX_SEPARATOR, WINDOWS_SEPARATOR);
+        return text.replace(LINUX_SEPARATOR, WINDOWS_SEPARATOR);
     }
     
     public static String toLinuxStyle(String text) {
-        return isWindowsStyle(text)
-               ? text.replace(WINDOWS_SEPARATOR, LINUX_SEPARATOR)
-               : text;
-    }
-    
-    public static boolean isWindowsStyle(String text) {
-        return text.contains(WINDOWS_SEPARATOR);
+        return text.replace(WINDOWS_SEPARATOR, LINUX_SEPARATOR);
     }
 }
